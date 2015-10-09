@@ -18,7 +18,7 @@ begin
     set promptline_theme "airline"
 
     set cwd_dir_limit 3
-    set cwd_truncation_symbol "⋯ "
+    set cwd_truncation_symbol "⋯"
      
     set battery_threshold 15
     set battery_symbol ""
@@ -111,13 +111,20 @@ function __promptline_cwd -S -d "create current-working-directory string"
     end
  
     # iterate components array and build the result
-    for part in $comps
-        set formatted_cwd "$dir_sep$part$formatted_cwd"
+    if test (count $comps) -ge 1
+        if test (count $comps) -gt 1
+            for part in $comps[1..-2]
+                set formatted_cwd "$dir_sep$part$formatted_cwd"
+            end
+        end
+
+        if test "$first_char" != "/"
+            set formatted_cwd "$dir_sep$comps[-1..-1]$formatted_cwd"
+        else
+            set formatted_cwd "$comps[-1..-1]$formatted_cwd"
+        end
     end
 
-    # if you prefer "/root  folder" instead of "/  root  folder" uncomment following line
-    test "$first_char" = "/"; and set formatted_cwd (echo $formatted_cwd | cut -c 4-)
- 
     echo -n "$first_char$formatted_cwd"
 end
  
