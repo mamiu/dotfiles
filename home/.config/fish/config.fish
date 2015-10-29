@@ -38,12 +38,8 @@ function cd
     end
 end
 
-# VARS
-set CFLAGS "-std=c99 -pedantic -Wall -Werror -D_XOPEN_SOURCE=700"
-
 # ALIASES
 alias ack="command ack --pager='less -R'"
-alias wake-server="wakeonlan 9C:B6:54:0C:A9:97"
-alias halt-server="ssh root@server -t \"shutdown -h 00\""
+alias bash="bash --norc"
 
 # COMPLETIONS
