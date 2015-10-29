@@ -6,6 +6,7 @@ set -x EDITOR vim
 source $HOME/.config/fish/fish_user_key_bindings.fish
 source $HOME/.config/fish/.promptline.fish
 source $HOME/.homesick/repos/homeshick/homeshick.fish
+source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
 
 set --erase fish_greeting
 
