@@ -19,14 +19,18 @@
     passwd <SERVER_USERNAME>
     
 **Fedora:**  
-You can do it within the graphical installer or by typing the same command as on debian.
+You can do it within the graphical installer or by issuing following commands:
+
+    adduser <SERVER_USERNAME>
+    passwd <SERVER_USERNAME>
+    gpasswd wheel -a <SERVER_USERNAME>
 
 <br>
-####Install `sudo, git, vim, tmux, curl and fish`.  
+####Install `sudo, git, vim, tmux, curl and fish`
 **On Debian:**
 
     apt-get -y install sudo git vim tmux curl
-    curl -L https://goo.gl/eHAKB4 | bash
+    curl -L https://goo.gl/eHAKB4 | bash  # BE CAREFULL!!! Please check the script behind this link before!
 
 **On Fedora:**
 
@@ -57,7 +61,13 @@ Insert following three lines in `~/.ssh/config` on the host:
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
 
-<br>
-**If you don't want a ssh login message:**  
+<br><br>
+##Extras
+
+####If you want the same dotfiles for the root user, call the `symlink_as_another_user.sh` as root user:
+
+    /home/<SERVER_USERNAME>/.homesick/repos/dotfiles/symlink_as_another_user.sh
+
+####If you don't want a ssh login message:**  
 Clear the file `/etc/motd` (**m**essage **o**f **t**he **d**ay) to remove the login message.  
 
