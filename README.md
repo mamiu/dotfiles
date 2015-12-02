@@ -64,10 +64,10 @@ Insert following three lines in `~/.ssh/config` on the host:
 <br><br>
 ##Extras
 
-####If you want the same dotfiles for the root user, call the `symlink_as_another_user.sh` as root user:
+####To symlink the same dotfiles for root, call the `symlink_as_another_user.sh` as root user:
 
     /home/<SERVER_USERNAME>/.homesick/repos/dotfiles/symlink_as_another_user.sh
 
-####If you don't want a ssh login message:**  
+####If you don't want a ssh login message:
 Clear the file `/etc/motd` (**m**essage **o**f **t**he **d**ay) to remove the login message.  
 
