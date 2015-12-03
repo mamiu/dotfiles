@@ -1,4 +1,4 @@
-# Things to do first after Linux Server installation (Debian 8 or Fedora 23)
+#Things to do first after Linux Server installation (Debian 8 or Fedora 23)
 
 **Variables in this guide:**
 
@@ -37,10 +37,9 @@ You can do it within the graphical installer or by issuing following commands:
     dnf install git vim tmux fish
 
 <br><br>
-## Things you have to do from any other user account (e.g. the admins account)
+##Things you have to do from your host
 
-
-####To ssh into your machine with the `<SERVER_SHORTNAME>`:
+####To ssh into your server with the `<SERVER_SHORTNAME>`:
 
 Insert following three lines in `~/.ssh/config` on the host:
 
@@ -49,11 +48,13 @@ Insert following three lines in `~/.ssh/config` on the host:
         HostName <SERVER_HOSTNAME>
 
 <br>
-####For ssh autologin run (on host):
+####To ssh into your server without passphrase:
 
     cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
 
-<br>
+<br><br>
+##Things you have to do admin
+
 ####Login with your \<SERVER_USERNAME\> (`ssh <SERVER_SHORTNAME>`)
 
     git config --global user.name "<FIRST_NAME> <LAST_NAME>"

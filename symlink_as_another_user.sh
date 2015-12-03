@@ -138,7 +138,6 @@ function prompt_no {
 
 SCRIPT=$(readlink -f $0)
 REPO=$(dirname $SCRIPT)
-SEARCHPATH=$REPO"/home/"
 CASTLE=${REPO##*/}
 
 function symlink {
