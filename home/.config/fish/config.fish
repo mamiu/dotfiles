@@ -11,27 +11,15 @@ source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
 set --erase fish_greeting
 
 # SELF DEFINED FUNCTIONS
-function dd
-    if test (echo $argv | cut -c 1-2) = "if"; and test (echo $argv | cut -d \  -f 2 | cut -c 1-2) = "of"
-        set input_file (echo $argv | cut -d \  -f 1 | cut -c 4-)
-        set target (echo $argv | cut -d \  -f 2 | cut -c 4-)
-        set file_size (ls -lh $input_file | cut -d \  -f 5)
-        set dd_arguments (echo $argv | cut -d \  -f 3-)
-        sudo -v
-        sudo bash -c "\dd if=$input_file $dd_arguments 2>/dev/null | pv -tpreb -s $file_size | \dd of=$target $dd_arguments 2>/dev/null"
-    end
-end
-
-function sudo
-    if test "$argv" = ""
-        commandline -r 'sudo '$history[1]
-        commandline -f execute
+function sudo -d "run the last command as root with sudo !! or call sudo with fish as shell"
+    if test "$argv" = "!!"
+        commandline -r 'sudo '$history[1]; and commandline -f execute
     else
-        command sudo $argv
+        command sudo -s fish -c "$argv"
     end
 end
 
-function cd
+function cd -d "follow symlinks with cd (e.g. cd symlink --> goto directory, where the symlinks target is stored)"
     if begin; test -n "$argv"; and test (count "$argv") -eq 1; and test -L "$argv"; end
         builtin cd (dirname (readlink "$argv"))
     else
@@ -40,7 +28,5 @@ function cd
 end
 
 # ALIASES
-alias ack="command ack --pager='less -R'"
 alias bash="bash --norc"
-
-# COMPLETIONS
+alias ack="command ack --pager='less -R'"
