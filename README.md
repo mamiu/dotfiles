@@ -9,7 +9,7 @@
     <LAST_NAME>         = admins last name
     <EMAIL_ADDRESS>     = admins email address
 
-<br><br>
+<br>
 ##On the server:
 
 ###As root:
@@ -27,7 +27,6 @@ You can do it within the graphical installer or by issuing following commands:
     passwd <SERVER_USERNAME>
     gpasswd wheel -a <SERVER_USERNAME>
 
-<br>
 ####Install `sudo, git, vim, tmux, curl and fish`
 **On Debian:**
 
@@ -38,18 +37,23 @@ You can do it within the graphical installer or by issuing following commands:
 
     dnf install git vim tmux fish
 
+####Make fish-shell the login shell with:
+
+    chsh -s /usr/bin/fish
+
 
 ###As admin user:
 
-####Login with your \<SERVER_USERNAME\>
+####Login with your \<SERVER_USERNAME\> and run the lines below to configure git, install the dotfiles and change the login shell to fish.
 
     git config --global user.name "<FIRST_NAME> <LAST_NAME>"
     git config --global user.email "<EMAIL_ADDRESS>"
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
+    chsh -s /usr/bin/fish
 
 
-<br><br>
+<br>
 ##On the client:
 
 ####To ssh into your server with the `<SERVER_SHORTNAME>`:
@@ -61,12 +65,11 @@ Insert following four lines in `~/.ssh/config` on the host:
         HostName <SERVER_HOSTNAME>
         SendEnv TMUX_AUTOSTART
 
-<br>
 ####To ssh into your server without passphrase:
 
     cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh; and cat >> .ssh/authorized_keys"
 
-<br><br>
+<br>
 ##Extras
 
 ####To symlink the same dotfiles for root, call the `symlink_as_another_user.sh` as root user:
