@@ -10,7 +10,9 @@
     <EMAIL_ADDRESS>     = admins email address
 
 <br><br>
-##Things you have to do as root user
+##On the server:
+
+###As root:
 
 ####Creating your admins user account and add it to the sudoers group
 **Debian:**
@@ -36,31 +38,33 @@ You can do it within the graphical installer or by issuing following commands:
 
     dnf install git vim tmux fish
 
-<br><br>
-##Things you have to do from your host
 
-####To ssh into your server with the `<SERVER_SHORTNAME>`:
+###As admin user:
 
-Insert following three lines in `~/.ssh/config` on the host:
-
-    Host <SERVER_SHORTNAME>
-        USER <SERVER_USERNAME>
-        HostName <SERVER_HOSTNAME>
-
-<br>
-####To ssh into your server without passphrase:
-
-    cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
-
-<br><br>
-##Things you have to do admin
-
-####Login with your \<SERVER_USERNAME\> (`ssh <SERVER_SHORTNAME>`)
+####Login with your \<SERVER_USERNAME\>
 
     git config --global user.name "<FIRST_NAME> <LAST_NAME>"
     git config --global user.email "<EMAIL_ADDRESS>"
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
+
+
+<br><br>
+##On the client:
+
+####To ssh into your server with the `<SERVER_SHORTNAME>`:
+
+Insert following four lines in `~/.ssh/config` on the host:
+
+    Host <SERVER_SHORTNAME>
+        USER <SERVER_USERNAME>
+        HostName <SERVER_HOSTNAME>
+        SendEnv TMUX_AUTOSTART
+
+<br>
+####To ssh into your server without passphrase:
+
+    cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh; and cat >> .ssh/authorized_keys"
 
 <br><br>
 ##Extras
@@ -68,6 +72,10 @@ Insert following three lines in `~/.ssh/config` on the host:
 ####To symlink the same dotfiles for root, call the `symlink_as_another_user.sh` as root user:
 
     /home/<SERVER_USERNAME>/.homesick/repos/dotfiles/symlink_as_another_user.sh
+
+####To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
+
+    AcceptEnv TMUX_AUTOSTART
 
 ####If you don't want a ssh login message:
 Clear the file `/etc/motd` (**m**essage **o**f **t**he **d**ay) to remove the login message.  

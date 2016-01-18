@@ -1,6 +1,6 @@
 # THINGS TO DO AT FISH INIT
 set TERM xterm-256color
-set PATH $PATH ~/bin
+set PATH ~/bin $PATH
 set -x EDITOR vim
 
 source $HOME/.config/fish/fish_user_key_bindings.fish
@@ -9,6 +9,12 @@ source $HOME/.homesick/repos/homeshick/homeshick.fish
 source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
 
 set --erase fish_greeting
+
+if test "$TMUX_AUTOSTART" = "true"
+    if status --is-login
+        tmux attach; and kill %self
+    end
+end
 
 # SELF DEFINED FUNCTIONS
 function sudo -d "run the last command as root with sudo !! or call sudo with fish as shell"
