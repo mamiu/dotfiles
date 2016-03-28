@@ -17,14 +17,6 @@ if test "$TMUX_AUTOSTART" = "true"
 end
 
 # SELF DEFINED FUNCTIONS
-function sudo -d "run the last command as root with sudo !! or call sudo with fish as shell"
-    if test "$argv" = "!!"
-        commandline -r 'sudo '$history[1]; and commandline -f execute
-    else
-        command sudo -s fish -c "$argv"
-    end
-end
-
 function cd -d "follow symlinks with cd (e.g. cd symlink --> goto directory, where the symlinks target is stored)"
     if begin; test -n "$argv"; and test (count "$argv") -eq 1; and test -L "$argv"; end
         builtin cd (dirname (readlink "$argv"))
@@ -36,3 +28,6 @@ end
 # ALIASES
 alias bash="bash --norc"
 alias ack="command ack --pager='less -R'"
+alias ls="ls -lh --group-directories-first --color"
+alias la="ls -lah --group-directories-first --color"
+# alias vim="gvim -v" # fix for fedora
