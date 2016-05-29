@@ -12,8 +12,7 @@ set --erase fish_greeting
 
 if test "$TMUX_AUTOSTART" = "true"
     if status --is-login
-        tmux attach >/dev/null ^&1; or tmux
-        kill %self
+        tmux attach >/dev/null ^&1; or tmux; and kill %self
     end
 end
 
