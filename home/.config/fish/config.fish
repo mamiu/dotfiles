@@ -12,7 +12,8 @@ set --erase fish_greeting
 
 if test "$TMUX_AUTOSTART" = "true"
     if status --is-login
-        tmux attach; and kill %self
+        tmux attach >/dev/null ^&1; or tmux
+        kill %self
     end
 end
 
@@ -28,6 +29,5 @@ end
 # ALIASES
 alias bash="bash --norc"
 alias ack="command ack --pager='less -R'"
-alias ls="ls -lh --group-directories-first --color"
+alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
-# alias vim="gvim -v" # fix for fedora

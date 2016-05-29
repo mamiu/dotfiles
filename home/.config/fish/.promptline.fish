@@ -216,7 +216,8 @@ function __promptline_left_prompt -S -d "draw the left part of promptline"
  
     # section "b" header
     if test $show_username = "yes"
-        if test "$USER" = "root"
+        set cur_user (whoami)
+        if test "$cur_user" = "root"
             set danger_bg "\e[48;5;88m"
             set danger_sep_fg "\e[38;5;88m"
             set slice_prefix "$danger_bg$sep$b_fg$danger_bg$space"
@@ -230,7 +231,7 @@ function __promptline_left_prompt -S -d "draw the left part of promptline"
         set slice_joiner "$b_fg$b_bg$alt_sep$space"
         test $is_prompt_empty -eq 1; and set slice_prefix "$slice_empty_prefix"
         # section "b" slices
-        __promptline_wrapper "$USER" "$slice_prefix" "$slice_suffix"; and set slice_prefix "$slice_joiner"; and set is_prompt_empty 0
+        __promptline_wrapper "$cur_user" "$slice_prefix" "$slice_suffix"; and set slice_prefix "$slice_joiner"; and set is_prompt_empty 0
     end
  
     # section "c" header
