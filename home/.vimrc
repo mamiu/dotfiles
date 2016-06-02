@@ -41,12 +41,12 @@ Bundle 'scrooloose/nerdcommenter'
 Bundle 'majutsushi/tagbar'
 " Code and files fuzzy finder
 Bundle 'ctrlpvim/ctrlp.vim'
-" Extension to ctrlp, for fuzzy command finder
-Bundle 'fisadev/vim-ctrlp-cmdpalette'
 " Zen coding
 Bundle 'mattn/emmet-vim'
 " Git integration
 Bundle 'tpope/vim-fugitive'
+" A Vim plugin which shows a git diff in the gutter (sign column)
+Bundle 'airblade/vim-gitgutter'
 "" Airline
 Bundle 'vim-airline/vim-airline'
 " Airline Themes
@@ -66,6 +66,8 @@ Bundle 'klen/python-mode'
 Bundle 'fisadev/vim-isort'
 " Window chooser
 Bundle 't9md/vim-choosewin'
+" zoom panes
+Bundle 'regedarek/ZoomWin'
 " Python and other languages code checker
 Bundle 'scrooloose/syntastic'
 " Snippets manager (SnipMate), dependencies, and snippets repo
