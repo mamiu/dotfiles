@@ -1,16 +1,22 @@
 #!/bin/bash
-# 
+#
 # cron job calls this script periodically
 # e.g. backup every 3 hours from disk1 to disk2
 #             every day from disk1 to disk3
-#             every week from disk1 to disk4
-# 
+#             every 3 days from disk1 to disk4
+#
 # backup process:
 # 1. mount destination disk
 # 2. start backup
 # 3. when backup finished unmount destination disk
 # 4. spin down destination disk
-# 
+#
+# add a cron job which runs this script periodically
+# a sample cron job could look like this:
+#
+# # call backup script (every 3 hours)
+# 0 */3 * * * /path/to/backup_script disk2
+#
 
 BACKUP_DEST_DEV="${1}"
 SRC_DISK="disk1"
@@ -18,16 +24,31 @@ BASE_MOUNT_DIR="/mnt/"
 SRC_DIR="."
 DEST_DIR="."
 RUN_AS_USER="manu"
-#LOG_FILE="/var/log/backup_script.log"
+LOG_FILE="/var/log/backup_script.log"
 
 function log() {
     STATE="$1"
     MESSAGE="$2"
     if [ ! -z "$LOG_FILE" ]; then
-        echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}" | tee "$LOG_FILE"
+        echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}" | tee -a "$LOG_FILE"
     else
         echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}"
     fi
+    # the if statement can be replaced with this line but I avoided it because of readability
+    # echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}" | ([ ! -z "$LOG_FILE" ] && tee -a "$LOG_FILE" || cat)
+}
+
+function exit() {
+    EXIT_STATUS="$1"
+    if [ "$EXIT_STATUS" == "0" ]; then
+        log "SUCCESS" "#################### FINISHED SUCCESSFULLY ####################"
+    else
+        log "ERROR" "#################### EXITED WITH ERROR ####################"
+    fi
+    if [ ! -z "$LOG_FILE" ]; then
+        echo -e "\n\n\n" >> "$LOG_FILE"
+    fi
+    command exit "$EXIT_STATUS"
 }
 
 function mount() {
@@ -127,7 +148,7 @@ case "$BACKUP_DEST_DEV" in
     *)
         echo "${BACKUP_DEST_DEV} is no valid parameter."
         echo "Usage: `basename ${0}` backup-destination-disk"
-        exit 1 # Exit the script with status 1
+        exit 1
 esac
 
 main
