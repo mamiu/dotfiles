@@ -1,0 +1,37 @@
+
+SETUP BACKUP PROCEDURE
+======================
+
+1. Add the specific partitions to the /etc/fstab file. e.g.:
+        LABEL="disk1" /mnt/disk1 ext4 defaults 0 2
+        LABEL="disk2" /mnt/disk2 ext4 noauto,defaults 0 2
+        LABEL="disk3" /mnt/disk3 ext4 noauto,defaults 0 2
+        LABEL="disk4" /mnt/disk4 ext4 noauto,defaults 0 2
+
+2. Create cron jobs with "sudo crontab -e". The crontab file could look like this:
+        # crontab file for <NAME_OF_SERVER>
+
+        # Minute | Hour   | Day of Month | Month             | Day of Week      | Command
+        # (0-59) | (0-23) | (1-31)       | (1-12 or Jan-Dec) | (0-6 or Sun-Sat) | echo "test"
+
+        # spin down disk1 every hour
+        30 * * * * /sbin/hdparm -Y /dev/sda
+
+        # call backup level one (every 3 hours)
+        0 */3 * * * /path/to/backup_script disk2
+
+        # call backup level two (every day)
+        0 1 * * * /path/to/backup_script disk3
+
+        # call backup level three (every third day)
+        0 2 1-30/3 * * /path/to/backup_script disk4
+
+3. Make sure that all config variables in the backup script are set correctly.
+
+
+SETUP NFS AS NETWORK FILE SYSTEM
+================================
+
+
+SETUP SEAFILE AS CLOUD SERVICE
+================================
