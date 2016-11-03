@@ -29,6 +29,14 @@ function cd -d "follow symlinks with cd (e.g. cd symlink --> goto directory, whe
     end
 end
 
+# # WINDOWS WORKAROUND
+# function x86
+#     echo '(x86)'
+# end
+# function X86
+#     echo '(X86)'
+# end
+
 # ALIASES
 alias ack="command ack --pager='less -R'"
 alias ls="ls -h --group-directories-first --color"
