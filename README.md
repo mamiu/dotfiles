@@ -1,13 +1,13 @@
 # Setup Fedora server after clean install
 
-Tested with Fedora 22 and above.
+Tested with Fedora 22 and above.  
 A description of the Variables used in this guide can be found at the bottom.
 
 ## On the server
 
-Log in as root user.
+#### STEP 1: Login as root user
 
-### STEP 1: Creating your admins user account and add it to the sudoers group
+#### STEP 2: Creating your admins user account and add it to the sudoers group
 
 If you already created an user account for the admin, skip this step.
 Otherwise create your admins user account:
@@ -16,35 +16,35 @@ Otherwise create your admins user account:
     passwd <SERVER_USERNAME>
     gpasswd wheel -a <SERVER_USERNAME>
 
-### STEP 2: Install the most important tools
+#### STEP 3: Install the most important tools
 
     dnf install git vim tmux fish
 
-### STEP 3: Clone the dotfiles from these reporitory
+#### STEP 4: Clone the dotfiles from these reporitory
 
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
 
-### STEP 4: Setup fish as login shell
+#### STEP 5: Setup fish as login shell
 
     lchsh
         New Shell [/bin/bash]: /usr/bin/fish
 
-### STEP 5: Login to your admins user account
+#### STEP 6: Login to your admins user account
 
     su - <SERVER_USERNAME>
 
-### STEP 6: Configure git
+#### STEP 7: Configure git
 
     git config --global user.name "<FIRST_NAME> <LAST_NAME>"
     git config --global user.email "<EMAIL_ADDRESS>"
 
-### STEP 7: Clone the dotfiles from these reporitory
+#### STEP 8: Clone the dotfiles from these reporitory
 
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
     
-### STEP 8: Setup fish as login shell
+#### STEP 9: Setup fish as login shell
 
     sudo lchsh <SERVER_USERNAME>
         New Shell [/bin/bash]: /usr/bin/fish
@@ -53,7 +53,7 @@ Otherwise create your admins user account:
 
 ## On the client:
 
-### STEP 1: Setup ssh config to login easily with `ssh <SERVER_SHORTNAME>`
+#### STEP 1: Setup ssh config to login easily with `ssh <SERVER_SHORTNAME>`
 
 Insert following four lines in `~/.ssh/config` on the host:
 
@@ -62,7 +62,7 @@ Insert following four lines in `~/.ssh/config` on the host:
         HostName <SERVER_HOSTNAME>
         SendEnv TMUX_AUTOSTART
 
-### STEP 2: Add clients public key to your servers athorized keys
+#### STEP 2: Add clients public key to your servers athorized keys
 
 This step will enable you to ssh into your server without passphrase.
 
@@ -78,7 +78,7 @@ Otherwise you have to call:
 
 ## Extras
 
-### To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
+#### To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
 
     AcceptEnv TMUX_AUTOSTART
 
