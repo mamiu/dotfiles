@@ -155,6 +155,9 @@ map <Leader>x <Esc>:x<CR>
 map <Leader>X <Esc>:x!<CR>
 inoremap <Leader>x <Esc>:x<CR>
 
+" faster and easier command shortcut
+nmap ; :
+
 " clipboard management
 function Paste_from_clipboard()
     set paste
