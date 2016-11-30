@@ -197,7 +197,7 @@ map <Leader>L <C-w>L
 map <Leader>o <C-w>o
 
 " don't use ESC anymore
-inoremap fd <Esc>l
+inoremap jj <Esc>l
 
 " make < > shifts keep selection
 vnoremap < <gv
@@ -216,7 +216,7 @@ vnoremap <Space> <ESC>
 set cursorline
 hi CursorLine ctermbg=235
 
-" swap v and Ctrl-v, because block mode is more useful that visual mode
+" swap v and Ctrl-v, because block mode is more useful than visual mode
 nnoremap    v   <C-V>
 nnoremap <C-V>     v
 
