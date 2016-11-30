@@ -4,6 +4,7 @@ set PATH ~/bin $PATH
 set -x EDITOR vim
 set -x LC_ALL en_US.utf-8
 set -x LANG en_US.utf-8
+set -x GOPATH $HOME/dev/go-workspace
 
 source $HOME/.config/fish/fish_user_key_bindings.fish
 source $HOME/.config/fish/.promptline.fish
