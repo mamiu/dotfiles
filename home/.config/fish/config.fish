@@ -33,3 +33,6 @@ end
 alias ack="command ack --pager='less -R'"
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
+# macOS fix for ls switches
+#alias ls="ls -hG"
+#alias la="ls -lahG"
