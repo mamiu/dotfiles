@@ -42,3 +42,4 @@ end
 alias ack="command ack --pager='less -R'"
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
+alias mount-server="sudo mount -o rw,bg,hard,resvport,intr,noac,nfc,tcp 20.4.91.100:/mnt/disk1 /media/server"

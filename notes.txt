@@ -35,8 +35,11 @@ SETUP NFS AS NETWORK FILE SYSTEM
 1. Use following line to export a directory via nfs
         /mnt/disk1 20.4.91.0/255.255.255.0(rw,all_squash,anonuid=1000,anongid=1000)
 
-2. To connect to the nfs server you can simply mount the drive with
-        sudo mount -o rw,bg,resvport 20.4.91.100:/mnt/disk1 /mnt/nfs
+2. Command to mount the nfs share
+   From a Mac:
+        sudo mount -o rw,bg,hard,resvport,intr,noac,nfc,tcp 20.4.91.100:/mnt/disk1 /media/server
+   From Linux:
+        sudo mount 20.4.91.100:/mnt/disk1 /media/server
 
 3. Or add following line in the /etc/fstab config file
         20.4.91.100:/mnt/disk1   /media/server   nfs user,noauto 0   0
