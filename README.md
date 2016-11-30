@@ -1,62 +1,59 @@
-#Things to do first after Linux Server installation (Debian 8 or Fedora 23)
+# Setup Fedora server after clean install
 
-**Variables in this guide:**
+Tested with Fedora 22 and above.  
+A description of the Variables used in this guide can be found at the bottom.
 
-    <SERVER_HOSTNAME>   = servers hostname or IP address
-    <SERVER_SHORTNAME>  = an abbreviation/short name for the server
-    <SERVER_USERNAME>   = the admins username on the server (not root)
-    <FIRST_NAME>        = admins first name
-    <LAST_NAME>         = admins last name
-    <EMAIL_ADDRESS>     = admins email address
+## On the server
 
-<br>
-##On the server:
+#### STEP 1: Login as root user
 
-###As root:
+#### STEP 2: Creating your admins user account and add it to the sudoers group
 
-####Creating your admins user account and add it to the sudoers group
-**Debian:**
-
-    adduser <SERVER_USERNAME> sudo
-    passwd <SERVER_USERNAME>
-    
-**Fedora:**  
-You can do it within the graphical installer or by issuing following commands:
+If you already created an user account for the admin, skip this step.
+Otherwise create your admins user account:
 
     adduser <SERVER_USERNAME>
     passwd <SERVER_USERNAME>
     gpasswd wheel -a <SERVER_USERNAME>
 
-####Install `sudo, git, vim, tmux, curl and fish`
-**On Debian:**
-
-    apt-get -y install sudo git vim tmux curl
-    curl -L https://goo.gl/eHAKB4 | bash  # BE CAREFULL!!! Please check the script behind this link before!
-
-**On Fedora:**
+#### STEP 3: Install the most important tools
 
     dnf install git vim tmux fish
 
-####Make fish-shell the login shell with:
+#### STEP 4: Clone the dotfiles from these reporitory
 
-    chsh -s /usr/bin/fish
+    git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
+    ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
 
+#### STEP 5: Setup fish as login shell
 
-###As admin user:
+    lchsh
+        New Shell [/bin/bash]: /usr/bin/fish
 
-####Login with your \<SERVER_USERNAME\> and run the lines below to configure git, install the dotfiles and change the login shell to fish.
+#### STEP 6: Login to your admins user account
+
+    su - <SERVER_USERNAME>
+
+#### STEP 7: Configure git
 
     git config --global user.name "<FIRST_NAME> <LAST_NAME>"
     git config --global user.email "<EMAIL_ADDRESS>"
+
+#### STEP 8: Clone the dotfiles from these reporitory
+
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
-    chsh -s /usr/bin/fish
+    
+#### STEP 9: Setup fish as login shell
 
+    sudo lchsh <SERVER_USERNAME>
+        New Shell [/bin/bash]: /usr/bin/fish
 
-<br>
-##On the client:
+<br>  
 
-####To ssh into your server with the `<SERVER_SHORTNAME>`:
+## On the client:
+
+#### STEP 1: Setup ssh config to login easily with `ssh <SERVER_SHORTNAME>`
 
 Insert following four lines in `~/.ssh/config` on the host:
 
@@ -65,21 +62,35 @@ Insert following four lines in `~/.ssh/config` on the host:
         HostName <SERVER_HOSTNAME>
         SendEnv TMUX_AUTOSTART
 
-####To ssh into your server without passphrase:
+#### STEP 2: Add clients public key to your servers athorized keys
+
+This step will enable you to ssh into your server without passphrase.
+
+If you have the `ssh-copy-id` command on your client it's only:
+
+    ssh-copy-id <SERVER_SHORTNAME>
+
+Otherwise you have to call:
 
     cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh; and cat >> .ssh/authorized_keys"
 
 <br>
-##Extras
 
-####To symlink the same dotfiles for root, call the `symlink_as_another_user.sh` as root user:
+## Extras
 
-    /home/<SERVER_USERNAME>/.homesick/repos/dotfiles/symlink_as_another_user.sh
-
-####To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
+#### To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
 
     AcceptEnv TMUX_AUTOSTART
 
-####If you don't want a ssh login message:
-Clear the file `/etc/motd` (**m**essage **o**f **t**he **d**ay) to remove the login message.  
+<br>
+<br>
+
+## Variables in this guide
+
+    <SERVER_HOSTNAME>   = servers hostname or IP address
+    <SERVER_SHORTNAME>  = an abbreviation/short name for the server
+    <SERVER_USERNAME>   = the admins username on the server (not root)
+    <FIRST_NAME>        = admins first name
+    <LAST_NAME>         = admins last name
+    <EMAIL_ADDRESS>     = admins email address
 
