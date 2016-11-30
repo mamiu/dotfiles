@@ -38,5 +38,8 @@ SETUP NFS AS NETWORK FILE SYSTEM
 2. To connect to the nfs server you can simply mount the drive with
         sudo mount -o rw,bg,resvport 20.4.91.100:/mnt/disk1 /mnt/nfs
 
+3. Or add following line in the /etc/fstab config file
+        20.4.91.100:/mnt/disk1   /media/server   nfs user,noauto 0   0
+
 SETUP SEAFILE AS CLOUD SERVICE
 ================================
