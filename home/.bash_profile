@@ -1,12 +1,13 @@
 # .bash_profile
 
-# Get the aliases and functions
+# Source global definitions
 if [ -f ~/.bashrc ]; then
 	. ~/.bashrc
 fi
 
-# User specific environment and startup programs
 
-PATH=$PATH:$HOME/.local/bin:$HOME/bin
-
-export PATH
+# Use fish as login shell
+case "$-" in
+    *i*) fish -il; exit ;;
+    *)  ;;
+esac

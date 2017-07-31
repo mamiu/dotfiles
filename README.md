@@ -25,30 +25,20 @@ Otherwise create your admins user account:
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
 
-#### STEP 5: Setup fish as login shell
-
-    lchsh
-        New Shell [/bin/bash]: /usr/bin/fish
-
-#### STEP 6: Login to your admins user account
+#### STEP 5: Login to your admins user account
 
     su - <SERVER_USERNAME>
 
-#### STEP 7: Configure git
+#### STEP 6: Configure git
 
     git config --global user.name "<FIRST_NAME> <LAST_NAME>"
     git config --global user.email "<EMAIL_ADDRESS>"
 
-#### STEP 8: Clone the dotfiles from these reporitory
+#### STEP 7: Clone the dotfiles from these reporitory
 
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
     
-#### STEP 9: Setup fish as login shell
-
-    sudo lchsh <SERVER_USERNAME>
-        New Shell [/bin/bash]: /usr/bin/fish
-
 <br>  
 
 ## On the client:
@@ -82,7 +72,6 @@ Otherwise you have to call:
 
     AcceptEnv TMUX_AUTOSTART
 
-<br>
 <br>
 
 ## Variables in this guide
