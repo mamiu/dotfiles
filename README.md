@@ -1,4 +1,18 @@
-# Setup Fedora server after clean install
+# mamius' dotfiles
+
+This is the repository of the config files, I need on every system.
+I manage my config files with [homeshick](https://github.com/andsens/homeshick), an awesome git dotfiles synchronizer written in bash.
+
+To install this config files on your system, you just have to ensure that you have git, vim, tmux and fish installed and then execute following two lines:
+
+    git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
+    ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
+
+That's it! Have fun :tada:
+
+<br>
+
+## This guide is an example how to setup a fedora server after a clean installation
 
 Tested with Fedora 22 and above.  
 A description of the Variables used in this guide can be found at the bottom.
@@ -39,7 +53,6 @@ Otherwise create your admins user account:
     git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
     
-<br>  
 
 ## On the client:
 
@@ -64,7 +77,6 @@ Otherwise you have to call:
 
     cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh; and cat >> .ssh/authorized_keys"
 
-<br>
 
 ## Extras
 
@@ -83,3 +95,5 @@ Otherwise you have to call:
     <LAST_NAME>         = admins last name
     <EMAIL_ADDRESS>     = admins email address
 
+----------
+Made by a :nerd_face: with :green_heart: in :de:

@@ -310,7 +310,7 @@ end
 # save the battery file in the same directory
 set -g BATTERY_FILE (dirname (status -f))"/.battery.fish"
 set -g VIRTUAL_ENV_DISABLE_PROMPT 1
-set -U HOSTNAME (hostname)
+set -g HOSTNAME (hostname)
  
 # create a seperate file for calculating the battery level and start the script
 # in the background to improve the performance of this prompt. On OS X this

@@ -44,5 +44,6 @@ SETUP NFS AS NETWORK FILE SYSTEM
 3. Or add following line in the /etc/fstab config file
         20.4.91.100:/mnt/disk1   /media/server   nfs user,noauto 0   0
 
-SETUP SEAFILE AS CLOUD SERVICE
+
+SETUP NEXTCLOUD AS CLOUD SERVICE
 ================================
