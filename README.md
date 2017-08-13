@@ -17,7 +17,7 @@ That's it! Have fun :tada:
 Tested with Fedora 22 and above.  
 A description of the Variables used in this guide can be found at the bottom.
 
-## On the server
+### On the server
 
 #### STEP 1: Login as root user
 
@@ -54,7 +54,7 @@ Otherwise create your admins user account:
     ~/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles
     
 
-## On the client:
+### On the client:
 
 #### STEP 1: Setup ssh config to login easily with `ssh <SERVER_SHORTNAME>`
 
@@ -78,15 +78,14 @@ Otherwise you have to call:
     cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh; and cat >> .ssh/authorized_keys"
 
 
-## Extras
+### Extras
 
 #### To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
 
     AcceptEnv TMUX_AUTOSTART
 
-<br>
 
-## Variables in this guide
+### Variables in this guide
 
     <SERVER_HOSTNAME>   = servers hostname or IP address
     <SERVER_SHORTNAME>  = an abbreviation/short name for the server
@@ -95,5 +94,7 @@ Otherwise you have to call:
     <LAST_NAME>         = admins last name
     <EMAIL_ADDRESS>     = admins email address
 
+<br>
 ----------
-Made by a :nerd_face: with :green_heart: in :de:
+
+Made by a :nerd_face: with :heartpulse: in :de:
