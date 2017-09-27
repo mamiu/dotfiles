@@ -32,6 +32,7 @@ Otherwise create your admins user account:
 
 #### STEP 3: Install the most important tools
 
+    dnf update vim-minimal
     dnf install git vim tmux fish
 
 #### STEP 4: Clone the dotfiles from these reporitory
@@ -77,12 +78,17 @@ Otherwise you have to call:
 
     cat ~/.ssh/id_rsa.pub | ssh <SERVER_SHORTNAME> "mkdir -p ~/.ssh; and cat >> .ssh/authorized_keys"
 
+If you use *bash* or *zsh* on the client, replace the `; and ` with ` && `.
 
 ### Extras
 
 #### To start tmux automatically after login add following line to `/etc/ssh/sshd_config`:
 
     AcceptEnv TMUX_AUTOSTART
+
+After that you have to restart the ssh server with:
+
+    systemctl restart sshd.service
 
 
 ### Variables in this guide

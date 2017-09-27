@@ -84,7 +84,7 @@ Bundle 'matchit.zip'
 "" Yank history navigation
 "Bundle 'YankRing.vim'
 " A code-completion engine for Vim
-Bundle 'Valloric/YouCompleteMe'
+"Bundle 'Valloric/YouCompleteMe'
 " nginx syntax support
 Bundle 'evanmiller/nginx-vim-syntax'
 
