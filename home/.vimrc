@@ -142,6 +142,9 @@ let mapleader=","
 set timeout
 set timeoutlen=1000
 
+" allow backspace in insert mode
+:set backspace=indent,eol,start
+
 " faster safe and close shortcuts
 map <Leader>s <Esc>:w<CR>
 inoremap <Leader>s <Esc>:w<CR>a

@@ -62,7 +62,7 @@ Otherwise create your admins user account:
 Insert following four lines in `~/.ssh/config` on the host:
 
     Host <SERVER_NICKNAME>
-        USER <SERVER_USERNAME>
+        User <SERVER_USERNAME>
         HostName <SERVER_HOSTNAME>
         Port <SERVER_PORT>
         SendEnv TMUX_AUTOSTART
