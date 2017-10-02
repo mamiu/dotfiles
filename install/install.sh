@@ -8,35 +8,64 @@ echo
 echo "Welcome to the ${bold_start}mamiu/dotfiles${bold_end} setup script!"
 echo
 
+# GLOBAL VARIABLES
+HOSTNAME=""
+PORT=""
+USERNAME=""
+
 
 configure_new_server()
 {
     echo
-    echo "Configure new server"
+    echo "########## CONFIGURE NEW SERVER ##########"
 
     # servers domain or ip address
-    read -p "Hostname or ip addresse of the server: " hostname
-    echo "servers ip address: $hostname"
-
-    # username with root privileges on the server
-    read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username
-    [ -z "$username" ] && username="root"
-    echo "servers username: $username"
+    read -p "Hostname or ip address of the server: " hostname
+    while ! ping -c1 -W1 "$hostname" >/dev/null 2>&1
+    do
+        read -p "Host is not reachable. Please enter a valid hostname or ip address: " hostname
+    done
 
     # servers port
     read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port
     [ -z "$port" ] && port="22"
-    echo "servers port: $port"
+    while ! nc -z $hostname $port >/dev/null 2>&1
+    do
+        read -p "Port is not open. Please enter a valid port: " port
+    done
 
-    # autostart tmux at login
-    read -p "Start tmux by default on login [${bold_start}Y${bold_end}/n]: " tmux_autostart
-    [ -z "$tmux_autostart" ] && tmux_autostart="y"
-    case "${tmux_autostart:0:1}" in
+    # username with root privileges on the server
+    read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username
+    [ -z "$username" ] && username="root"
+
+    # add this config to ssh config
+    read -p "Add this config to ssh config [${bold_start}Y${bold_end}/n]: " add_ssh_config
+    [ -z "$add_ssh_config" ] && add_ssh_config="y"
+    case "${add_ssh_config:0:1}" in
         y|Y )
-            echo Yes
+            add_ssh_config=true
+
+            # nickname for the server
+            read -p "Nickname for the server: " nickname
+            while [ -z "$nickname" ] || [[ " ${hosts[@]} " =~ " ${nickname} " ]]
+            do
+                read -p "Nickname is blank or exists already. Please enter another nickname: " nickname
+            done
+
+            # autostart tmux at login
+            read -p "Start tmux by default on login [${bold_start}Y${bold_end}/n]: " tmux_autostart
+            [ -z "$tmux_autostart" ] && tmux_autostart="y"
+            case "${tmux_autostart:0:1}" in
+                y|Y )
+                    tmux_autostart=true
+                ;;
+                * )
+                    tmux_autostart=false
+                ;;
+            esac
         ;;
         * )
-            echo No
+            add_ssh_config=false
         ;;
     esac
 
@@ -45,28 +74,53 @@ configure_new_server()
     [ -z "$ssh_copy_id" ] && ssh_copy_id="y"
     case "${ssh_copy_id:0:1}" in
         y|Y )
-            echo Yes
+            ssh_copy_id=true
         ;;
         * )
-            echo No
+            ssh_copy_id=false
         ;;
     esac
 
-    # add this config to ssh config
-    read -p "Add this config to ssh config [${bold_start}Y${bold_end}/n]: " add_ssh_config
-    [ -z "$add_ssh_config" ] && add_ssh_config="y"
-    case "${add_ssh_config:0:1}" in
-        y|Y )
-            echo Yes
+    if $add_ssh_config; then
+        # add ssh configuration to ssh config file
 
-            # nickname for the server
-            read -p "Nickname for the server: " nickname
-            echo "servers nickname: $nickname"
-        ;;
-        * )
-            echo No
-        ;;
-    esac
+        ssh_config_file=~/.ssh/config
+
+        if [ ! -e $ssh_config_file ] ; then
+            touch $ssh_config_file
+        fi
+
+        if [ -w $ssh_config_file ] ; then
+            echo "" >> $ssh_config_file
+            echo "Host $nickname" >> $ssh_config_file
+            echo "    User $username" >> $ssh_config_file
+            echo "    HostName $hostname" >> $ssh_config_file
+            echo "    Port $port" >> $ssh_config_file
+            if $tmux_autostart; then
+                echo "    SendEnv TMUX_AUTOSTART" >> $ssh_config_file
+            fi
+        else
+            echo cannot write to $ssh_config_file
+        fi
+    fi
+
+    if $ssh_copy_id; then
+        # copy public id to the remote server
+
+        key_file=~/.ssh/id_rsa
+        public_key_file="${key_file}.pub"
+
+        if [ ! -e $public_key_file ] ; then
+            ssh-keygen -t rsa -N "" -f $key_file
+        fi
+
+        cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
+    fi
+
+    # save the ssh credentials into the global variables
+    HOSTNAME=$hostname
+    PORT=$port
+    USERNAME=$username
 }
 
 choose_host()
@@ -98,6 +152,12 @@ choose_host()
 setup_server()
 {
     echo "Setup server"
+
+    echo "hostname: $HOSTNAME"
+    echo "port: $PORT"
+    echo "username: $USERNAME"
+
+    ssh -o StrictHostKeyChecking=no -p $PORT $USERNAME@$HOSTNAME "echo \$0"
     # log into server
     #ssh server.miu.io -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup_server.sh | bash"
 
@@ -122,18 +182,4 @@ setup_server
 
 echo
 # output login info
-
-
-
-
-
-#read -p "Is this a good question (y/n)? " answer
-#case ${answer:-yes} in
-    #yes|Yes )
-        #echo Yes
-    #;;
-    #* )
-        #echo No
-    #;;
-#esac
 
