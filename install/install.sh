@@ -121,6 +121,7 @@ choose_remote_host()
     host_options=('New Server')
     host_options+=("${hosts[@]}")
 
+    echo
     echo "Choose the server you want to setup:"
 
     select host_option in "${host_options[@]}"
@@ -160,15 +161,17 @@ call_installation_script()
     target_os=$1
     install_script="${current_scirpt_path}/setup-os/${target_os}.sh"
 
+    (( EUID != 0 )) && run_as_root="sudo"
     if [ -f $install_script ]; then
-        /bin/bash "$install_script"
+        $run_as_root /bin/bash "$install_script"
     else
-        curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh | bash -s -- -l --no-greeting
+        curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh | ${run_as_root} bash -s -- -l --no-greeting
     fi
 }
 
 check_os()
 {
+    echo
     uppercase_hostname=`echo "$HOSTNAME" | tr '[:lower:]' '[:upper:]'`
     echo "########## SETUP $uppercase_hostname ##########"
 
@@ -194,6 +197,7 @@ check_os()
             fi
         ;;
         darwin*)
+            call_installation_script "fedora-26"
             echo "macOS will be supported soon."
             exit_program 1
         ;;
@@ -210,18 +214,15 @@ check_os()
 
 setup_remote_host()
 {
-    echo "########## SETUP REMOTE HOST ##########"
     echo
+    echo "########## SETUP REMOTE HOST ##########"
 
     hostname=$1
     port=$2
     username=$3
 
-    echo "hostname: $hostname"
-    echo "port: $port"
     echo "username: $username"
-
-    #ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "echo \$0"
+    echo "hostname: $hostname"
 
     # log into server and start install script
     ssh -o StrictHostKeyChecking=no -p $port $username@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
@@ -231,6 +232,7 @@ setup_remote_host()
 
 choose_install_target()
 {
+    echo
     # install remote or locally
     while :
     do
@@ -242,7 +244,6 @@ choose_install_target()
                 break
             ;;
             l|L )
-                echo
                 check_os
                 break
             ;;
@@ -278,7 +279,6 @@ done
 if [ -z "$no_greeting" ]; then
     echo
     echo "Welcome to the ${bold_start}mamiu/dotfiles${bold_end} setup script!"
-    echo
 fi
 
 if [ -z "$installation_target" ]; then

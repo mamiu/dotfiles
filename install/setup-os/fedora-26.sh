@@ -1,31 +1,20 @@
 #!/bin/bash
 
-# DON'T USE TILL NOW
-# this will become an automated install script
+if [ $EUID != 0 ]; then
+    echo "Installation script has to be called with root permissions!"
+    exit 1
+fi
 
-#git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-# Press `prefix + I` (capital i, as in install) to fetch the plugins
-
-
-# check for root privileges
-
-# if current user is not root
-    # remeber current username
-    # log on as root user
-# else
-    # ask for admin users username
-    # create admin user
+echo "start installation"
 
 # ask for root user password change
 # ask for admin user password change
 
 # call commands from readme file
 
+#git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+# Press `prefix + I` (capital i, as in install) to fetch the plugins
+
 # install docker
 
-# reboot
-
-echo start...
-sleep 2
-echo ...end
-
+#reboot
