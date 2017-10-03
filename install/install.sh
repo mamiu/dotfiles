@@ -8,11 +8,6 @@ echo
 echo "Welcome to the ${bold_start}mamiu/dotfiles${bold_end} setup script!"
 echo
 
-# GLOBAL VARIABLES
-HOSTNAME=""
-PORT=""
-USERNAME=""
-
 
 configure_new_server()
 {
@@ -117,47 +112,107 @@ configure_new_server()
         cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
     fi
 
-    # save the ssh credentials into the global variables
-    HOSTNAME=$hostname
-    PORT=$port
-    USERNAME=$username
+    setup_remote_host $hostname $port $username
 }
 
-choose_host()
+choose_remote_host()
 {
-    select host_option # in "$@" is the default
+    # get the hosts from ~/.ssh/config
+    hosts=(`grep -w -i "Host" ~/.ssh/config | sed 's/[ ]*[Hh][Oo][Ss][Tt][ ]*//g'`)
+
+    # add option 'New Server' to array
+    host_options=('New Server')
+    host_options+=("${hosts[@]}")
+
+    echo "Choose the server you want to setup:"
+
+    select host_option in "${host_options[@]}"
     do
+        [[ -n $host_option ]] || { echo "What's that? Please try again." >&2; continue; }
         if [[ "$REPLY" =~ ^-?[0-9]+$ ]]; then
             if [ "$REPLY" -eq "1" ]; then
                 configure_new_server
                 break;
-            elif [ 1 -lt "$REPLY" ] && [ "$REPLY" -le "$#" ]; then
+            elif [ 1 -lt "$REPLY" ] && [ "$REPLY" -le  "${#host_options[@]}" ]; then
                 hostname=(`ssh -G "$host_option" | grep "^hostname " | sed 's/hostname[ ]*//g'`)
-                user=(`ssh -G "$host_option" | grep "^user " | sed 's/user[ ]*//g'`)
                 port=(`ssh -G "$host_option" | grep "^port " | sed 's/port[ ]*//g'`)
-                sendenv=(`ssh -G "$host_option" | grep "^sendenv " | sed 's/sendenv[ ]*//g'`)
+                username=(`ssh -G "$host_option" | grep "^user " | sed 's/user[ ]*//g'`)
 
-                echo "ssh -p $port $user@$hostname"
+                setup_remote_host $hostname $port $username
 
                 break;
             else
-                echo "Incorrect Input: Select a number 1-$#"
+                echo "Incorrect Input: Select a number 1-${#host_options[@]}"
             fi
         else
-            echo "Incorrect Input: Select a number 1-$#"
+            echo "Incorrect Input: Select a number 1-${#host_options[@]}"
         fi
     done
 }
 
-setup_server()
+exit_program()
 {
-    echo "Setup server"
+    echo
+    exit $1
+}
 
-    echo "hostname: $HOSTNAME"
-    echo "port: $PORT"
-    echo "username: $USERNAME"
+check_os()
+{
+    echo "########## SETUP $HOSTNAME ##########"
 
-    ssh -o StrictHostKeyChecking=no -p $PORT $USERNAME@$HOSTNAME "echo \$0"
+    case "$OSTYPE" in
+        linux*)
+            os_release_file=/etc/os-release
+
+            if [ -e $os_release_file ] ; then
+                source $os_release_file
+
+                #if [ "$ID" == "fedora" ] && [ "$VERSION_ID" == "26" ]; then
+                if [ "$ID" == "fedora" ]; then
+                    echo "setup mamiu/dotfiles on fedora server"
+                elif [ "$ID" == "ubuntu" ]; then
+                    echo "Ubuntu will be supported soon."
+                    exit_programm 1
+                else
+                    echo "This linux distro isn't supported."
+                    exit_programm 1
+                fi
+            else
+                echo "Couldn't specify the linux distro."
+                exit_program 1
+            fi
+        ;;
+        darwin*)
+            echo "macOS will be supported soon."
+            exit_program 1
+        ;;
+        msys*)
+            echo "Windows is currently not supported."
+            exit_program 1
+        ;;
+        *)
+            echo "Unknown operating system. This OS is not supported."
+            exit_program 1
+        ;;
+    esac
+}
+
+setup_remote_host()
+{
+    echo "########## SETUP REMOTE HOST ##########"
+    echo
+
+    hostname=$1
+    port=$2
+    username=$3
+
+    echo "hostname: $hostname"
+    echo "port: $port"
+    echo "username: $username"
+
+    check_os
+    #ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "echo \$0"
+
     # log into server
     #ssh server.miu.io -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup_server.sh | bash"
 
@@ -165,21 +220,45 @@ setup_server()
     # reboot server
 }
 
-# get the hosts from ~/.ssh/config
-hosts=(`grep -w -i "Host" ~/.ssh/config | sed 's/[ ]*[Hh][Oo][Ss][Tt][ ]*//g'`)
+choose_install_target()
+{
+    # install remote or locally
+    while :
+    do
+        read -p "Do you want to setup the (l)ocal or a (r)emote host [l/${bold_start}R${bold_end}]: " install_target
+        [ -z "$install_target" ] && install_target="r"
+        case "${install_target:0:1}" in
+            r|R )
+                choose_remote_host
+                break
+            ;;
+            l|L )
+                check_os
+                break
+            ;;
+            * )
+                echo "Invalid choice. Please select ${bold_start}l${bold_end} for local or ${bold_start}r${bold_end} for remote!"
+            ;;
+        esac
+    done
+}
 
-# add option 'New Server' to array
-host_options=('New Server')
-host_options+=("${hosts[@]}")
 
-############ TO-DO: ASK FOR LOCAL INSTALL OR REMOTE INSTALL
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -r|--remote)
+        choose_remote_host
+        exit_program
+    ;;
+    -l|--local)
+        check_os
+        exit_program
+    ;;
+    *)
+        echo "unknown option: $1" >&2
+        exit_program 1
+    ;;
+  esac
+done
 
-echo Choose the server you want to setup:
-choose_host "${host_options[@]}"
-echo
-
-setup_server
-
-echo
-# output login info
-
+choose_install_target
