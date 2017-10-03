@@ -15,40 +15,40 @@ configure_new_server()
     echo "########## CONFIGURE NEW SERVER ##########"
 
     # servers domain or ip address
-    read -p "Hostname or ip address of the server: " hostname
+    read -p "Hostname or ip address of the server: " hostname </dev/tty
     while ! ping -c1 -W1 "$hostname" >/dev/null 2>&1
     do
-        read -p "Host is not reachable. Please enter a valid hostname or ip address: " hostname
+        read -p "Host is not reachable. Please enter a valid hostname or ip address: " hostname </dev/tty
     done
 
     # servers port
-    read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port
+    read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port </dev/tty
     [ -z "$port" ] && port="22"
     while ! nc -z $hostname $port >/dev/null 2>&1
     do
-        read -p "Port is not open. Please enter a valid port: " port
+        read -p "Port is not open. Please enter a valid port: " port </dev/tty
     done
 
     # username with root privileges on the server
-    read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username
+    read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username </dev/tty
     [ -z "$username" ] && username="root"
 
     # add this config to ssh config
-    read -p "Add this config to ssh config [${bold_start}Y${bold_end}/n]: " add_ssh_config
+    read -p "Add this config to ssh config [${bold_start}Y${bold_end}/n]: " add_ssh_config </dev/tty
     [ -z "$add_ssh_config" ] && add_ssh_config="y"
     case "${add_ssh_config:0:1}" in
         y|Y )
             add_ssh_config=true
 
             # nickname for the server
-            read -p "Nickname for the server: " nickname
+            read -p "Nickname for the server: " nickname </dev/tty
             while [ -z "$nickname" ] || [[ " ${hosts[@]} " =~ " ${nickname} " ]]
             do
-                read -p "Nickname is blank or exists already. Please enter another nickname: " nickname
+                read -p "Nickname is blank or exists already. Please enter another nickname: " nickname </dev/tty
             done
 
             # autostart tmux at login
-            read -p "Start tmux by default on login [${bold_start}Y${bold_end}/n]: " tmux_autostart
+            read -p "Start tmux by default on login [${bold_start}Y${bold_end}/n]: " tmux_autostart </dev/tty
             [ -z "$tmux_autostart" ] && tmux_autostart="y"
             case "${tmux_autostart:0:1}" in
                 y|Y )
@@ -65,7 +65,7 @@ configure_new_server()
     esac
 
     # login without entering a password in the future (adding id_rsa to known_hosts on server)
-    read -p "Login without entering a password in the future [${bold_start}Y${bold_end}/n]: " ssh_copy_id
+    read -p "Login without entering a password in the future [${bold_start}Y${bold_end}/n]: " ssh_copy_id </dev/tty
     [ -z "$ssh_copy_id" ] && ssh_copy_id="y"
     case "${ssh_copy_id:0:1}" in
         y|Y )
@@ -147,7 +147,7 @@ choose_remote_host()
         else
             echo "Incorrect Input: Select a number 1-${#host_options[@]}"
         fi
-    done
+    done </dev/tty || host_option="1"
 }
 
 exit_program()
@@ -167,8 +167,7 @@ check_os()
             if [ -e $os_release_file ] ; then
                 source $os_release_file
 
-                #if [ "$ID" == "fedora" ] && [ "$VERSION_ID" == "26" ]; then
-                if [ "$ID" == "fedora" ]; then
+                if [ "$ID" == "fedora" ] && [ "$VERSION_ID" == "26" ]; then
                     echo "setup mamiu/dotfiles on fedora server"
                 elif [ "$ID" == "ubuntu" ]; then
                     echo "Ubuntu will be supported soon."
@@ -210,11 +209,10 @@ setup_remote_host()
     echo "port: $port"
     echo "username: $username"
 
-    check_os
     #ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "echo \$0"
 
     # log into server
-    #ssh server.miu.io -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup_server.sh | bash"
+    ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l"
 
     # download and call setup script on server
     # reboot server
@@ -225,7 +223,7 @@ choose_install_target()
     # install remote or locally
     while :
     do
-        read -p "Do you want to setup the (l)ocal or a (r)emote host [l/${bold_start}R${bold_end}]: " install_target
+        read -p "Do you want to setup the (l)ocal or a (r)emote host [l/${bold_start}R${bold_end}]: " install_target </dev/tty || install_target="l"
         [ -z "$install_target" ] && install_target="r"
         case "${install_target:0:1}" in
             r|R )
@@ -233,6 +231,7 @@ choose_install_target()
                 break
             ;;
             l|L )
+                echo
                 check_os
                 break
             ;;
