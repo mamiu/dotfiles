@@ -1,12 +1,9 @@
 #!/bin/bash
+# MAMIU/DOTFILES SETUP SCRIPT
 
-
+# helper variables to make text bold
 bold_start=$(tput bold)
 bold_end=$(tput sgr0)
-
-echo
-echo "Welcome to the ${bold_start}mamiu/dotfiles${bold_end} setup script!"
-echo
 
 
 configure_new_server()
@@ -156,9 +153,24 @@ exit_program()
     exit $1
 }
 
+call_installation_script()
+{
+    current_script=$(readlink -f "$0")
+    current_scirpt_path=$(dirname "$current_script")
+    target_os=$1
+    install_script="${current_scirpt_path}/setup-os/${target_os}.sh"
+
+    if [ -f $install_script ]; then
+        /bin/bash "$install_script"
+    else
+        curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh | bash -s -- -l --no-greeting
+    fi
+}
+
 check_os()
 {
-    echo "########## SETUP $HOSTNAME ##########"
+    uppercase_hostname=`echo "$HOSTNAME" | tr '[:lower:]' '[:upper:]'`
+    echo "########## SETUP $uppercase_hostname ##########"
 
     case "$OSTYPE" in
         linux*)
@@ -168,7 +180,7 @@ check_os()
                 source $os_release_file
 
                 if [ "$ID" == "fedora" ] && [ "$VERSION_ID" == "26" ]; then
-                    echo "setup mamiu/dotfiles on fedora server"
+                    call_installation_script "fedora-26"
                 elif [ "$ID" == "ubuntu" ]; then
                     echo "Ubuntu will be supported soon."
                     exit_programm 1
@@ -211,11 +223,10 @@ setup_remote_host()
 
     #ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "echo \$0"
 
-    # log into server
-    ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l"
+    # log into server and start install script
+    ssh -o StrictHostKeyChecking=no -p $port $username@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
 
-    # download and call setup script on server
-    # reboot server
+    exit_program
 }
 
 choose_install_target()
@@ -246,12 +257,16 @@ choose_install_target()
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -r|--remote)
-        choose_remote_host
-        exit_program
+        installation_target="remote"
+        shift
     ;;
     -l|--local)
-        check_os
-        exit_program
+        installation_target="local"
+        shift
+    ;;
+    --no-greeting)
+        no_greeting=true
+        shift
     ;;
     *)
         echo "unknown option: $1" >&2
@@ -260,4 +275,18 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-choose_install_target
+if [ -z "$no_greeting" ]; then
+    echo
+    echo "Welcome to the ${bold_start}mamiu/dotfiles${bold_end} setup script!"
+    echo
+fi
+
+if [ -z "$installation_target" ]; then
+    choose_install_target
+elif [ "$installation_target" == "remote" ]; then
+    choose_remote_host
+elif [ "$installation_target" == "local" ]; then
+    check_os
+fi
+
+exit_program
