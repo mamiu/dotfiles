@@ -32,7 +32,7 @@ Otherwise create your admins user account:
 
 #### STEP 3: Install the most important tools
 
-    dnf update vim-minimal
+    dnf update
     dnf install git vim tmux fish
 
 #### STEP 4: Clone the dotfiles from these reporitory

@@ -73,7 +73,7 @@ configure_new_server()
         ;;
     esac
 
-    if $add_ssh_config; then
+    if [ "$add_ssh_config" == true ]; then
         # add ssh configuration to ssh config file
 
         ssh_config_file=~/.ssh/config
@@ -88,7 +88,7 @@ configure_new_server()
             echo "    User $username" >> $ssh_config_file
             echo "    HostName $hostname" >> $ssh_config_file
             echo "    Port $port" >> $ssh_config_file
-            if $tmux_autostart; then
+            if [ "$tmux_autostart" == true ]; then
                 echo "    SendEnv TMUX_AUTOSTART" >> $ssh_config_file
             fi
         else
@@ -96,7 +96,7 @@ configure_new_server()
         fi
     fi
 
-    if $ssh_copy_id; then
+    if [ "$ssh_copy_id" == true ]; then
         # copy public id to the remote server
 
         key_file=~/.ssh/id_rsa
@@ -167,6 +167,10 @@ call_installation_script()
     else
         curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh | ${run_as_root} bash -s -- -l --no-greeting
     fi
+
+    echo
+    echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
+    exit_program
 }
 
 check_os()
