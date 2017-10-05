@@ -8,6 +8,7 @@ bold_end=$(tput sgr0)
 ssh_copy_id()
 {
     # copy public id to the remote server
+    echo "########## ENABLING LOGIN WITHOUT PASSWORD ##########"
     hostname=$1
     port=$2
     username=$3
@@ -19,12 +20,7 @@ ssh_copy_id()
         ssh-keygen -t rsa -N "" -f $key_file
     fi
 
-    if [ "$user_exists" == "false" ]; then
-        user="root"
-    else
-        user=$username
-    fi
-    cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $user@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
+    cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
 }
 
 configure_new_server()
@@ -260,14 +256,20 @@ setup_remote_host()
     user_exists=$4
     ssh_copy_id=$5
 
-    echo "username: $username"
+    if [ "$user_exists" == "false" ]; then
+        user="root"
+    else
+        user=$username
+    fi
+
+    echo "username: $user"
     echo "hostname: $hostname"
 
     # log into server and start install script
     if [ "$user_exists" == "false" ]; then
-        ssh -o StrictHostKeyChecking=no -p $port root@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting --admin-user=$username"
+        ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting --admin-user=$username"
     else
-        ssh -o StrictHostKeyChecking=no -p $port $username@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+        ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
     fi
 
     if [ "$ssh_copy_id" == true ] && [ "$user_exists" == false ]; then
