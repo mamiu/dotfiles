@@ -26,7 +26,7 @@ read -p "Change root password [${bold_start}Y${bold_end}/n]: " change_root_passw
 [ -z "$change_root_password" ] && change_root_password="y"
 case "${change_root_password:0:1}" in
     y|Y )
-        passwd
+        passwd </dev/tty
     ;;
 esac
 
@@ -66,7 +66,7 @@ case "${setup_admin_user:0:1}" in
                 fi
 
                 adduser $admin_name
-                passwd $admin_name
+                passwd $admin_name </dev/tty
                 gpasswd wheel -a $admin_name
             ;;
             n|N )
