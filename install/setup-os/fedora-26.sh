@@ -159,4 +159,3 @@ echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
 systemctl restart sshd.service
 
-reboot

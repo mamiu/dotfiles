@@ -52,7 +52,7 @@ configure_new_server()
         read -p "Does the user ${bold_start}${username}${bold_end} already exist? [y/${bold_start}N${bold_end}] " user_exists </dev/tty
         [ -z "$user_exists" ] && user_exists="n"
         case "${user_exists:0:1}" in
-            n|N|no|No )
+            n|N )
                 user_exists=false
             ;;
             * )
@@ -98,7 +98,7 @@ configure_new_server()
     read -p "Login without entering a password in the future? [${bold_start}Y${bold_end}/n] " ssh_copy_id </dev/tty
     [ -z "$ssh_copy_id" ] && ssh_copy_id="y"
     case "${ssh_copy_id:0:1}" in
-        y|Y|yes|Yes )
+        y|Y )
             ssh_copy_id=true
         ;;
         * )
@@ -275,6 +275,15 @@ setup_remote_host()
     if [ "$ssh_copy_id" == true ] && [ "$user_exists" == false ]; then
         ssh_copy_id $hostname $port $username
     fi
+
+    # reboot server
+    read -p "Do you want to reboot the server? [${bold_start}Y${bold_end}/n] " reboot_server </dev/tty
+    [ -z "$reboot_server" ] && reboot_server="y"
+    case "${reboot_server:0:1}" in
+        y|Y )
+            ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "reboot"
+        ;;
+    esac
 
     exit_program
 }
