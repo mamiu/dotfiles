@@ -5,6 +5,27 @@
 bold_start=$(tput bold)
 bold_end=$(tput sgr0)
 
+ssh_copy_id()
+{
+    # copy public id to the remote server
+    hostname=$1
+    port=$2
+    username=$3
+
+    key_file=~/.ssh/id_rsa
+    public_key_file="${key_file}.pub"
+
+    if [ ! -e $public_key_file ] ; then
+        ssh-keygen -t rsa -N "" -f $key_file
+    fi
+
+    if [ "$user_exists" == "false" ]; then
+        user="root"
+    else
+        user=$username
+    fi
+    cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $user@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
+}
 
 configure_new_server()
 {
@@ -52,10 +73,12 @@ configure_new_server()
             add_ssh_config=true
 
             # nickname for the server
-            read -p "Nickname for the server: " nickname </dev/tty
-            while [ -z "$nickname" ] || [[ " ${hosts[@]} " =~ " ${nickname} " ]]
+            read -p "Nickname for the server: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
+            [ -z "$nickname" ] && nickname="$hostname"
+            while [[ " ${hosts[@]} " =~ " ${nickname} " ]]
             do
-                read -p "Nickname is blank or exists already. Please enter another nickname: " nickname </dev/tty
+                read -p "Nickname does already exist. Please enter another nickname: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
+                [ -z "$nickname" ] && nickname="$hostname"
             done
 
             # autostart tmux at login
@@ -110,25 +133,11 @@ configure_new_server()
         fi
     fi
 
-    if [ "$ssh_copy_id" == true ]; then
-        # copy public id to the remote server
-
-        key_file=~/.ssh/id_rsa
-        public_key_file="${key_file}.pub"
-
-        if [ ! -e $public_key_file ] ; then
-            ssh-keygen -t rsa -N "" -f $key_file
-        fi
-
-        if [ "$user_exists" == "false" ]; then
-            user="root"
-        else
-            user=$username
-        fi
-        cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $user@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
+    if [ "$ssh_copy_id" == true ] && [ "$user_exists" == true ]; then
+        ssh_copy_id $hostname $port $username
     fi
 
-    setup_remote_host $hostname $port $username $user_exists
+    setup_remote_host $hostname $port $username $user_exists $ssh_copy_id
 }
 
 choose_remote_host()
@@ -249,7 +258,7 @@ setup_remote_host()
     port=$2
     username=$3
     user_exists=$4
-
+    ssh_copy_id=$5
 
     echo "username: $username"
     echo "hostname: $hostname"
@@ -259,6 +268,10 @@ setup_remote_host()
         ssh -o StrictHostKeyChecking=no -p $port root@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting --admin-user=$username"
     else
         ssh -o StrictHostKeyChecking=no -p $port $username@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+    fi
+
+    if [ "$ssh_copy_id" == true ] && [ "$user_exists" == false ]; then
+        ssh_copy_id $hostname $port $username
     fi
 
     exit_program
