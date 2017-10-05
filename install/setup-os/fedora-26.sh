@@ -143,14 +143,11 @@ fi
 
 # install docker
 dnf -y install container-selinux libcgroup
-cd ~
-mkdir tmp
-cd tmp
+mkdir -p ~/tmp && cd ~/tmp
 wget "https://download.docker.com/linux/fedora/26/x86_64/stable/Packages/docker-ce-17.09.0.ce-1.fc26.x86_64.rpm"
 rpm -i docker-ce-17.09.0.ce-1.fc26.x86_64.rpm
-cd ..
-rm -rf tmp
-dnf install docker-compose
+cd ~ && rm -rf ~/tmp
+dnf -y install docker-compose
 systemctl enable docker.service
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
