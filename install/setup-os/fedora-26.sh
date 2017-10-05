@@ -5,6 +5,23 @@ if [ $EUID != 0 ]; then
     exit 1
 fi
 
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -u)
+            ADMIN_USER="$2"
+            shift 2
+        ;;
+        --admin-user=*)
+            ADMIN_USER="${1#*=}"
+            shift
+        ;;
+        *)
+            echo "unknown option: $1" >&2
+            exit_program 1
+        ;;
+    esac
+done
+
 read -p "Change root password [${bold_start}Y${bold_end}/n]: " change_root_password </dev/tty
 [ -z "$change_root_password" ] && change_root_password="y"
 case "${change_root_password:0:1}" in
@@ -13,23 +30,40 @@ case "${change_root_password:0:1}" in
     ;;
 esac
 
-read -p "setup an admin user [${bold_start}Y${bold_end}/n]: " setup_admin_user </dev/tty
-[ -z "$setup_admin_user" ] && setup_admin_user="y"
+if [ -z $ADMIN_USER ]; then
+    read -p "setup an admin user [${bold_start}Y${bold_end}/n]: " setup_admin_user </dev/tty
+    [ -z "$setup_admin_user" ] && setup_admin_user="y"
+else
+    setup_admin_user="y"
+fi
 case "${setup_admin_user:0:1}" in
     y|y )
         setup_admin_user=true
 
-        read -p "Create a new user [${bold_start}Y${bold_end}/n]: " new_admin_user </dev/tty
-        [ -z "$new_admin_user" ] && new_admin_user="y"
+        users=(`awk -F':' '{ print $1}' /etc/passwd`)
+
+        if [ -z $ADMIN_USER ]; then
+            read -p "Create a new user [${bold_start}Y${bold_end}/n]: " new_admin_user </dev/tty
+            [ -z "$new_admin_user" ] && new_admin_user="y"
+        else
+            admin_name=$ADMIN_USER
+
+            if [[ " ${users[@]} " =~ " ${ADMIN_USER} " ]]; then
+                new_admin_user="-"
+            else
+                new_admin_user="y"
+            fi
+        fi
         case "${new_admin_user:0:1}" in
             y|y )
-                users=(`awk -F':' '{ print $1}' /etc/passwd`)
 
-                read -p "Username for the new admin: " admin_name </dev/tty
-                while [ -z "$admin_name" ] || [[ " ${users[@]} " =~ " ${admin_name} " ]]
-                do
-                    read -p "Username is blank or does already exist. Please enter another username: " admin_name </dev/tty
-                done
+                if [ -z $ADMIN_USER ]; then
+                    read -p "Username for the new admin: " admin_name </dev/tty
+                    while [ -z "$admin_name" ] || [[ " ${users[@]} " =~ " ${admin_name} " ]]
+                    do
+                        read -p "Username is blank or does already exist. Please enter another username: " admin_name </dev/tty
+                    done
+                fi
 
                 adduser $admin_name
                 passwd $admin_name

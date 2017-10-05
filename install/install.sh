@@ -30,8 +30,22 @@ configure_new_server()
     read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username </dev/tty
     [ -z "$username" ] && username="root"
 
+    if [ "$username" != "root" ]; then
+        # username is a user that already exists
+        read -p "Does the user ${bold_start}${username}${bold_end} already exist? [y/${bold_start}N${bold_end}] " user_exists </dev/tty
+        [ -z "$user_exists" ] && user_exists="n"
+        case "${user_exists:0:1}" in
+            n|N|no|No )
+                user_exists=false
+            ;;
+            * )
+                user_exists=true
+            ;;
+        esac
+    fi
+
     # add this config to ssh config
-    read -p "Add this config to ssh config [${bold_start}Y${bold_end}/n]: " add_ssh_config </dev/tty
+    read -p "Add this config to ssh config? [${bold_start}Y${bold_end}/n] " add_ssh_config </dev/tty
     [ -z "$add_ssh_config" ] && add_ssh_config="y"
     case "${add_ssh_config:0:1}" in
         y|Y )
@@ -45,10 +59,10 @@ configure_new_server()
             done
 
             # autostart tmux at login
-            read -p "Start tmux by default on login [${bold_start}Y${bold_end}/n]: " tmux_autostart </dev/tty
+            read -p "Start tmux by default on login? [${bold_start}Y${bold_end}/n] " tmux_autostart </dev/tty
             [ -z "$tmux_autostart" ] && tmux_autostart="y"
             case "${tmux_autostart:0:1}" in
-                y|Y )
+                y|Y|yes|Yes )
                     tmux_autostart=true
                 ;;
                 * )
@@ -62,10 +76,10 @@ configure_new_server()
     esac
 
     # login without entering a password in the future (adding id_rsa to known_hosts on server)
-    read -p "Login without entering a password in the future [${bold_start}Y${bold_end}/n]: " ssh_copy_id </dev/tty
+    read -p "Login without entering a password in the future? [${bold_start}Y${bold_end}/n] " ssh_copy_id </dev/tty
     [ -z "$ssh_copy_id" ] && ssh_copy_id="y"
     case "${ssh_copy_id:0:1}" in
-        y|Y )
+        y|Y|yes|Yes )
             ssh_copy_id=true
         ;;
         * )
@@ -106,10 +120,15 @@ configure_new_server()
             ssh-keygen -t rsa -N "" -f $key_file
         fi
 
-        cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
+        if [ "$user_exists" == "false" ]; then
+            user="root"
+        else
+            user=$username
+        fi
+        cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $user@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
     fi
 
-    setup_remote_host $hostname $port $username
+    setup_remote_host $hostname $port $username $user_exists
 }
 
 choose_remote_host()
@@ -161,11 +180,16 @@ call_installation_script()
     target_os=$1
     install_script="${current_scirpt_path}/setup-os/${target_os}.sh"
 
+    params=""
+    if [ ! -z "$ADMIN_USER" ]; then
+        params+=" --admin-user=$ADMIN_USER"
+    fi
+
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f $install_script ]; then
-        $run_as_root /bin/bash "$install_script"
+        $run_as_root /bin/bash "$install_script" "$params"
     else
-        curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh | ${run_as_root} bash -s -- -l --no-greeting
+        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" | ${run_as_root} bash -s -- "$params"
     fi
 
     echo
@@ -224,12 +248,18 @@ setup_remote_host()
     hostname=$1
     port=$2
     username=$3
+    user_exists=$4
+
 
     echo "username: $username"
     echo "hostname: $hostname"
 
     # log into server and start install script
-    ssh -o StrictHostKeyChecking=no -p $port $username@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+    if [ "$user_exists" == "false" ]; then
+        ssh -o StrictHostKeyChecking=no -p $port root@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting --admin-user=$username"
+    else
+        ssh -o StrictHostKeyChecking=no -p $port $username@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+    fi
 
     exit_program
 }
@@ -240,7 +270,7 @@ choose_install_target()
     # install remote or locally
     while :
     do
-        read -p "Do you want to setup the (l)ocal or a (r)emote host [l/${bold_start}R${bold_end}]: " install_target </dev/tty || install_target="l"
+        read -p "Do you want to setup the (l)ocal or a (r)emote host? [l/${bold_start}R${bold_end}] " install_target </dev/tty || install_target="l"
         [ -z "$install_target" ] && install_target="r"
         case "${install_target:0:1}" in
             r|R )
@@ -269,8 +299,16 @@ while [ "$#" -gt 0 ]; do
         installation_target="local"
         shift
     ;;
-    --no-greeting)
+    -n|--no-greeting)
         no_greeting=true
+        shift
+    ;;
+    -u)
+        ADMIN_USER="$2"
+        shift 2
+    ;;
+    --admin-user=*)
+        ADMIN_USER="${1#*=}"
         shift
     ;;
     *)
