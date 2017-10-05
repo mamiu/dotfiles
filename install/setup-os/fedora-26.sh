@@ -17,7 +17,7 @@ while [ "$#" -gt 0 ]; do
         ;;
         *)
             echo "unknown option: $1" >&2
-            exit_program 1
+            exit 1
         ;;
     esac
 done

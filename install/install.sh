@@ -182,14 +182,14 @@ call_installation_script()
 
     params=""
     if [ ! -z "$ADMIN_USER" ]; then
-        params+=" --admin-user=$ADMIN_USER"
+        params+="--admin-user=$ADMIN_USER"
     fi
 
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f $install_script ]; then
-        $run_as_root /bin/bash "$install_script" "$params"
+        $run_as_root /bin/bash "$install_script" $params
     else
-        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" | ${run_as_root} bash -s -- "$params"
+        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" | ${run_as_root} bash -s -- $params
     fi
 
     echo
