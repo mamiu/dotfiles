@@ -149,6 +149,7 @@ rpm -i docker-ce-17.09.0.ce-1.fc26.x86_64.rpm
 cd ~ && rm -rf ~/tmp
 dnf -y install docker-compose
 systemctl enable docker.service
+systemctl start docker
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
 ssh_config_file="/etc/ssh/sshd_config"
