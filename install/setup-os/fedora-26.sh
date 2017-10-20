@@ -67,7 +67,7 @@ case "${setup_admin_user:0:1}" in
 
                 adduser $admin_name
                 passwd $admin_name </dev/tty
-                gpasswd wheel -a $admin_name
+                gpasswd -a $admin_name wheel
             ;;
             n|N )
 
@@ -149,7 +149,10 @@ rpm -i docker-ce-17.09.0.ce-1.fc26.x86_64.rpm
 cd ~ && rm -rf ~/tmp
 dnf -y install docker-compose
 systemctl enable docker.service
-gpasswd -a $admin_name docker
+# if there's an admin user add it to the docker group
+if [ -n "$admin_name" ]; then
+    gpasswd -a $admin_name docker
+fi
 systemctl start docker
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
