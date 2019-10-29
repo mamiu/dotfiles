@@ -25,6 +25,11 @@ if test "$TMUX_AUTOSTART" = "true"
 end
 
 # ALIASES
-alias ack="command ack --pager='less -R'"
-alias ls="ls -h --group-directories-first --color"
-alias la="ls -lah --group-directories-first --color"
+function ls
+    command ls -h --group-directories-first --color $argv;
+end
+
+function la
+    ls -lah --group-directories-first --color $argv;
+end
+
