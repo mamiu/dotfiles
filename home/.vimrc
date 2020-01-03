@@ -76,7 +76,7 @@ Bundle 'tomtom/tlib_vim'
 Bundle 'honza/vim-snippets'
 Bundle 'garbas/vim-snipmate'
 " python virtualenv integration
-Bundle 'jmcantrell/vim-virtualenv'
+"Bundle 'jmcantrell/vim-virtualenv'
 " Search results counter
 Bundle 'IndexedSearch'
 " XML/HTML tags navigation
