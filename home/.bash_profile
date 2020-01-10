@@ -1,6 +1,6 @@
 # .bash_profile
 
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+#export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Source global definitions
 if [ -f ~/.bashrc ]; then
