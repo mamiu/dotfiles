@@ -35,9 +35,17 @@ if test "$TMUX_AUTOSTART" = "true"
     end
 end
 
+# CUSTOM USER FUNCTIONS
+function ls
+    command ls -h --group-directories-first --color $argv;
+end
+
+function la
+    ls -lah --group-directories-first --color $argv;
+end
+
 # ALIASES
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
 alias ssh="env TMUX_AUTOSTART=true ssh"
 #alias emu="nohup $HOME/Library/Android/sdk/emulator/emulator '@Pixel_3a_rooted_' >/dev/null 2>&1 &; disown"
-

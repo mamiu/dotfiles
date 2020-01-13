@@ -215,8 +215,8 @@ check_os()
             if [ -e $os_release_file ] ; then
                 source $os_release_file
 
-                if [ "$ID" == "fedora" ] && [ "$VERSION_ID" == "26" ]; then
-                    call_installation_script "fedora-26"
+                if [ "$ID" == "fedora" ] && [ "$VERSION_ID" == "29" ]; then
+                    call_installation_script "fedora-29"
                 elif [ "$ID" == "ubuntu" ]; then
                     echo "Ubuntu will be supported soon."
                     exit_programm 1
