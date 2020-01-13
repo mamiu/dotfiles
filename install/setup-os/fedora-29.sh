@@ -144,8 +144,8 @@ fi
 # install docker
 dnf -y install container-selinux libcgroup
 mkdir -p ~/tmp && cd ~/tmp
-wget "https://download.docker.com/linux/fedora/26/x86_64/stable/Packages/docker-ce-17.09.0.ce-1.fc26.x86_64.rpm"
-rpm -i docker-ce-17.09.0.ce-1.fc26.x86_64.rpm
+wget "https://download.docker.com/linux/fedora/29/x86_64/stable/Packages/docker-ce-17.09.0.ce-1.fc29.x86_64.rpm"
+rpm -i docker-ce-17.09.0.ce-1.fc29.x86_64.rpm
 cd ~ && rm -rf ~/tmp
 dnf -y install docker-compose
 systemctl enable docker.service
