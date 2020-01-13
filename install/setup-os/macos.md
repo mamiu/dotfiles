@@ -68,6 +68,13 @@ mkdir $HOME/.ssh
 ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
 ```
 
+## 9. Install tmux plugin manager and tmux plugins
+
+```bash
+git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh
+```
+
 ## 9. Disable the security assessment policy subsystem
 
 ```bash

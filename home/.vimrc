@@ -37,12 +37,8 @@ Bundle 'scrooloose/nerdtree'
 Bundle 'jistr/vim-nerdtree-tabs'
 " Code commenter
 Bundle 'scrooloose/nerdcommenter'
-" Class/module browser
-Bundle 'majutsushi/tagbar'
 " Code and files fuzzy finder
 Bundle 'ctrlpvim/ctrlp.vim'
-" Zen coding
-Bundle 'mattn/emmet-vim'
 " Git integration
 Bundle 'tpope/vim-fugitive'
 " A Vim plugin which shows a git diff in the gutter (sign column)
@@ -61,32 +57,19 @@ Bundle 'jiangmiao/auto-pairs'
 Bundle 'nathanaelkane/vim-indent-guides'
 " Python mode (indentation, doc, refactor, lints, code checking, motion and
 " operators, highlighting, run and ipdb breakpoints)
-Bundle 'klen/python-mode'
-" Automatically sort python imports
-Bundle 'fisadev/vim-isort'
+"Bundle 'klen/python-mode'
 " Window chooser
 Bundle 't9md/vim-choosewin'
 " zoom panes
 Bundle 'regedarek/ZoomWin'
-" Python and other languages code checker
-Bundle 'scrooloose/syntastic'
-" Snippets manager (SnipMate), dependencies, and snippets repo
-Bundle 'MarcWeber/vim-addon-mw-utils'
-Bundle 'tomtom/tlib_vim'
-Bundle 'honza/vim-snippets'
-Bundle 'garbas/vim-snipmate'
 " python virtualenv integration
-"Bundle 'jmcantrell/vim-virtualenv'
+Bundle 'jmcantrell/vim-virtualenv'
 " Search results counter
 Bundle 'IndexedSearch'
 " XML/HTML tags navigation
 Bundle 'matchit.zip'
 "" Yank history navigation
-"Bundle 'YankRing.vim'
-" A code-completion engine for Vim
-"Bundle 'Valloric/YouCompleteMe'
-" nginx syntax support
-Bundle 'evanmiller/nginx-vim-syntax'
+Bundle 'YankRing.vim'
 
 
 " ============================================================================
@@ -249,8 +232,8 @@ if has('gui_running')
     colorscheme wombat
 endif
 
-" when scrolling, keep cursor 3 lines away from screen border
-set scrolloff=4
+" when scrolling, keep cursor 8 lines away from screen border
+set scrolloff=8
 
 " autocompletion of files and commands behaves like shell
 " (complete only the common part, list the options that match)
@@ -413,4 +396,4 @@ no <expr> ; Multift(pvft,pvftc,pvft)
 " no <expr> , Multift(-pvft,pvftc,pvft)
 
 " YouCompleteMe
-let g:ycm_python_binary_path = '/usr/bin/python'
+"let g:ycm_python_binary_path = '/usr/bin/python'

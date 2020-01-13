@@ -43,6 +43,10 @@ sudo chsh -s $(which fish) $USER
 mkdir $HOME/.ssh
 ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
 
+# Install tmux plugin manager and tmux plugins
+git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh
+
 # Disable the security assessment policy subsystem
 sudo spctl --master-disable
 
