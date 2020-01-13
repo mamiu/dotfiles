@@ -29,6 +29,12 @@ done
 # Add /usr/local/gnubin as first line to /etc/paths
 sudo sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
 
+# Install dotfiles
+git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
+$HOME/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles -b
+git -C $HOME/.homesick/repos/dotfiles checkout macbook
+$HOME/.homesick/repos/homeshick/bin/homeshick link dotfiles
+
 # Make fish the default shell
 sudo sh -c 'echo $(which fish) >> /etc/shells'
 sudo chsh -s $(which fish) $USER

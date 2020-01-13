@@ -5,22 +5,10 @@ I manage my config files with [homeshick](https://github.com/andsens/homeshick),
 
 ## Installation
 
-To install this config files on your system, you just have to ensure that you have git installed.
-Then execute following lines:
+Just run the following line in your terminal:
 
 ```bash
-# Download homeshick and clone this dotfiles repository
-git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-$HOME/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles -b
-
-# ONLY EXECUTE THE FOLLOWING LINE ON A MAC OS SYSTEM
-git -C $HOME/.homesick/repos/dotfiles checkout macbook
-
-# That line again on both, linux and mac os
-$HOME/.homesick/repos/homeshick/bin/homeshick link dotfiles
-
-# Install and setup system
-$HOME/.homesick/repos/dotfiles/install/install.sh --local
+curl -s https://raw.githubusercontent.com/mamiu/dotfiles/macbook/install/install.sh | bash -s -- -l
 ```
 
 That's it! Have fun :tada:

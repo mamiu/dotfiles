@@ -45,33 +45,42 @@ done
 sudo sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
 ```
 
-## 6. Make fish the default shell
+## 6. Install dotfiles
+
+```bash
+git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
+$HOME/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles -b
+git -C $HOME/.homesick/repos/dotfiles checkout macbook
+$HOME/.homesick/repos/homeshick/bin/homeshick link dotfiles
+```
+
+## 7. Make fish the default shell
 
 ```bash
 sudo sh -c 'echo $(which fish) >> /etc/shells'
 sudo chsh -s $(which fish) $USER
 ```
 
-## 7. Generate ssh key pair
+## 8. Generate ssh key pair
 
 ```bash
 mkdir $HOME/.ssh
 ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
 ```
 
-## 8. Disable the security assessment policy subsystem
+## 9. Disable the security assessment policy subsystem
 
 ```bash
 sudo spctl --master-disable
 ```
 
-## 9. Download and install FiraCode font
+## 10. Download and install FiraCode font
 
 ```bash
 open https://github.com/tonsky/FiraCode
 ```
 
-## 10. Install mac apps (only the ones you really need)
+## 11. Install mac apps (only the ones you really need)
 
 - Tools
   - [Clipy](https://github.com/Clipy/Clipy)
