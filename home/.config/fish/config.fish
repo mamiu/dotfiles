@@ -1,6 +1,6 @@
 # SET VARIABLES
 set TERM xterm-256color
-set PATH ~/bin $PATH
+set PATH ~/bin ~/local/bin $PATH
 set -x EDITOR vim
 set -x LC_ALL en_US.utf-8
 set -x LANG en_US.utf-8
@@ -16,11 +16,9 @@ set --erase fish_greeting
 
 # START TMUX IF TMUX_AUTOSTART ENVIRONMENT VARIABLE IS SET,
 # CURRENT SHELL IS LOGIN SHELL AND SHELL IS NOT INSIDE TMUX
-if test "$TMUX_AUTOSTART" = "true"
-    if status --is-login
-        if test -z "$TMUX"
-            tmux attach >/dev/null 2>&1; or tmux; and kill %self
-        end
+if status --is-login
+    if test -z "$TMUX"
+        tmux attach >/dev/null 2>&1; or tmux; and kill %self
     end
 end
 
