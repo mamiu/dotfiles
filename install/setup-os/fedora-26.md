@@ -100,6 +100,7 @@ systemctl restart sshd.service
 
 ## Variables in this guide
 
+```bash
 <SERVER_HOSTNAME> = servers hostname or IP address
 <SERVER_PORT> = port on server where the ssh service is listening
 <SERVER_NICKNAME> = an abbreviation/short name for the server
@@ -107,3 +108,4 @@ systemctl restart sshd.service
 <FIRST_NAME> = admins first name
 <LAST_NAME> = admins last name
 <EMAIL_ADDRESS> = admins email address
+```
