@@ -1,4 +1,0 @@
-#!/bin/bash
-
-export TMUX_AUTOSTART=true
-exec /usr/bin/ssh $*

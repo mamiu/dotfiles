@@ -1,8 +1,7 @@
-# .bash_profile
 
 # Source global definitions
 if [ -f ~/.bashrc ]; then
-	. ~/.bashrc
+    . ~/.bashrc
 fi
 
 
@@ -11,3 +10,4 @@ case "$-" in
     *i*) fish -il; exit ;;
     *)  ;;
 esac
+
