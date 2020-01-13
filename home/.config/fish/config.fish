@@ -47,7 +47,5 @@ end
 # ALIASES
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
+alias ssh="env TMUX_AUTOSTART=true ssh"
 alias emu="nohup $HOME/Library/Android/sdk/emulator/emulator '@Pixel_3a_rooted_' >/dev/null 2>&1 &; disown"
-#alias ack="command ack --pager='less -R'"
-#alias psh="pipenv shell --fancy"
-
