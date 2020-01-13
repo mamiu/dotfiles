@@ -181,9 +181,9 @@ exit_program()
 call_installation_script()
 {
     current_script=$(readlink -f "$0")
-    current_scirpt_path=$(dirname "$current_script")
+    current_script_path=$(dirname "$current_script")
     target_os=$1
-    install_script="${current_scirpt_path}/setup-os/${target_os}.sh"
+    install_script="${current_script_path}/setup-os/${target_os}.sh"
 
     params=""
     if [ ! -z "$ADMIN_USER" ]; then
@@ -230,9 +230,7 @@ check_os()
             fi
         ;;
         darwin*)
-            call_installation_script "fedora-26"
-            echo "macOS will be supported soon."
-            exit_program 1
+            call_installation_script "macos"
         ;;
         msys*)
             echo "Windows is currently not supported."
