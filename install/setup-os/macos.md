@@ -67,26 +67,32 @@ mkdir $HOME/.ssh
 ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
 ```
 
-## 9. Install tmux plugin manager and tmux plugins
+## 9. Install fisher - a package manager for the fish shell
+
+```bash
+curl https://git.io/fisher --create-dirs -sLo $HOME/.config/fish/functions/fisher.fish
+```
+
+## 10. Install tmux plugin manager and tmux plugins
 
 ```bash
 git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
 $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh
 ```
 
-## 9. Disable the security assessment policy subsystem
+## 11. Disable the security assessment policy subsystem
 
 ```bash
 sudo spctl --master-disable
 ```
 
-## 10. Download and install FiraCode font
+## 12. Download and install FiraCode font
 
 ```bash
 open https://github.com/tonsky/FiraCode
 ```
 
-## 11. Install mac apps (only the ones you really need)
+## 13. Install mac apps (only the ones you really need)
 
 - Tools
   - [Clipy](https://github.com/Clipy/Clipy)

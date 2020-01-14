@@ -1,8 +1,9 @@
 # SET VARIABLES
-set TERM xterm-256color
-set -x EDITOR vim
 set -x LC_ALL en_US.utf-8
 set -x LANG en_US.utf-8
+set -x TERM xterm-256color
+set -x EDITOR vim
+set -x FZF_DEFAULT_COMMAND 'fd -H -t f -E .git -E GoogleDrive'
 
 # SET KUBERNETES EXECUTABLE PATHS
 #set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/helm/darwin-amd64
@@ -16,7 +17,6 @@ set -x LANG en_US.utf-8
 
 # IMPORT FISH SCRIPTS
 source $HOME/.config/fish/fish_user_key_bindings.fish
-source $HOME/.config/fish/.promptline.fish
 source $HOME/.homesick/repos/homeshick/homeshick.fish
 source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
 
@@ -37,11 +37,21 @@ end
 
 # CUSTOM USER FUNCTIONS
 function ls
-    command ls -h --group-directories-first --color $argv;
+    command ls -h --group-directories-first --color $argv
+
 end
 
 function la
-    ls -lah --group-directories-first --color $argv;
+    ls -lah --group-directories-first --color $argv
+
+end
+
+function vim
+    if count $argv >/dev/null
+        command vim $argv
+    else
+        vim (fzf --preview 'bat --style=numbers --color=always {} | head -500')
+    end
 end
 
 # ALIASES
@@ -49,3 +59,21 @@ alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
 alias ssh="env TMUX_AUTOSTART=true ssh"
 #alias emu="nohup $HOME/Library/Android/sdk/emulator/emulator '@Pixel_3a_rooted_' >/dev/null 2>&1 &; disown"
+
+# BOBTHEFISH THEME CONFIGURATION
+set -g theme_display_git yes
+set -g theme_display_git_master_branch yes
+set -g theme_display_user ssh
+set -g theme_display_hostname ssh
+set -g theme_display_date yes
+set -g theme_title_use_abbreviated_path yes
+set -g theme_title_display_user yes
+set -g fish_prompt_pwd_dir_length 0
+set -g theme_project_dir_length 0
+set -g theme_date_format "+%d.%m.%Y %H:%M:%S"
+set -g theme_powerline_fonts yes
+set -g theme_show_exit_status yes
+set -g theme_display_jobs_verbose yes
+set -g theme_color_scheme base16
+#set -g theme_display_k8s_context yes
+

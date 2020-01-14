@@ -10,7 +10,7 @@ sudo echo Starting installation of the most basic macOS dependencies...
 # highly recommended (basics)
 brew install coreutils binutils diffutils findutils bash openssh python
 # recommended (cli tools)
-brew install git fish tmux ncdu vim kubernetes-cli
+brew install git fish tmux ncdu vim kubernetes-cli fzf bat fd ripgrep
 # optional
 # brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
 
@@ -41,6 +41,9 @@ sudo chsh -s $(which fish) $USER
 # Generate ssh key pair
 mkdir $HOME/.ssh
 ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
+
+# Install fisher - a package manager for the fish shell
+curl https://git.io/fisher --create-dirs -sLo $HOME/.config/fish/functions/fisher.fish
 
 # Install tmux plugin manager and tmux plugins
 git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
