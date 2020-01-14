@@ -120,10 +120,11 @@ dnf -y update
 dnf -y install git vim tmux fish
 
 git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-git clone https://github.com/mamiu/dotfiles.git $HOME/.homesick/repos/dotfiles
-~/.homesick/repos/homeshick/bin/homeshick link -f dotfiles
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-# Press prefix + I (capital i, as in install) to fetch the plugins
+$HOME/.homesick/repos/homeshick/bin/homeshick clone -b mamiu/dotfiles
+$HOME/.homesick/repos/homeshick/bin/homeshick link -f dotfiles
+
+git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh
 
 if [ "$setup_admin_user" == true ]; then
 
