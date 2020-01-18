@@ -71,13 +71,14 @@ ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
 
 ```bash
 curl https://git.io/fisher --create-dirs -sLo $HOME/.config/fish/functions/fisher.fish
+fish -c fisher
 ```
 
 ## 10. Install tmux plugin manager and tmux plugins
 
 ```bash
 git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
-$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh
+tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
 ```
 
 ## 11. Disable the security assessment policy subsystem
@@ -89,10 +90,20 @@ sudo spctl --master-disable
 ## 12. Download and install FiraCode font
 
 ```bash
-open https://github.com/tonsky/FiraCode
+curl -L https://github.com/tonsky/FiraCode/releases/download/2/FiraCode_2.zip -o fira_code_2.zip
+unzip fira_code_2.zip -d ./fira_code_2
+sudo chown root:wheel ./fira_code_2/otf/*
+sudo mv fira_code_2/otf/* /Library/Fonts/
+rm -rf ./fira_code_2*
 ```
 
-## 13. Install mac apps (only the ones you really need)
+## 13. Install iTerm2
+
+```bash
+brew cask install iterm2
+```
+
+## 14. Install mac apps (only the ones you really need)
 
 - Tools
   - [Clipy](https://github.com/Clipy/Clipy)

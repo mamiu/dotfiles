@@ -178,23 +178,43 @@ exit_program()
     exit $1
 }
 
+# `readlink -f` functionality for macOS
+get_path_of_current_file() {
+    TARGET_FILE=$1
+
+    cd `dirname $TARGET_FILE`
+    TARGET_FILE=`basename $TARGET_FILE`
+
+    # Iterate down a (possible) chain of symlinks
+    while [ -L "$TARGET_FILE" ]
+    do
+        TARGET_FILE=`readlink $TARGET_FILE`
+        cd `dirname $TARGET_FILE`
+        TARGET_FILE=`basename $TARGET_FILE`
+    done
+
+    # Finding the physical path for the directory we are in
+    echo `pwd -P`
+}
+
 call_installation_script()
 {
-    current_script=$(readlink -f "$0")
-    current_script_path=$(dirname "$current_script")
+    current_script_path=$(get_path_of_current_file "$0")
     target_os=$1
     install_script="${current_script_path}/setup-os/${target_os}.sh"
 
     params=""
     if [ ! -z "$ADMIN_USER" ]; then
         params+="--admin-user=$ADMIN_USER"
+    else
+        params+="--admin-user=$USER"
     fi
 
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f $install_script ]; then
         $run_as_root /bin/bash "$install_script" $params
     else
-        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" | ${run_as_root} bash -s -- $params
+        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" | ${run_as_root} /bin/bash -s -- $params
     fi
 
     echo
@@ -207,6 +227,7 @@ check_os()
     echo
     uppercase_hostname=`echo "$HOSTNAME" | tr '[:lower:]' '[:upper:]'`
     echo "########## SETUP $uppercase_hostname ##########"
+    echo
 
     case "$OSTYPE" in
         linux*)

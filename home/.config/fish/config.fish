@@ -1,9 +1,12 @@
 # SET VARIABLES
-set -x LC_ALL en_US.utf-8
-set -x LANG en_US.utf-8
+set -x LC_ALL en_US.UTF-8
+set -x LANG en_US.UTF-8
 set -x TERM xterm-256color
 set -x EDITOR vim
 set -x FZF_DEFAULT_COMMAND 'fd -H -t f -E .git -E GoogleDrive'
+
+set -x FZF_DEFAULT_COMMAND 'fd --hidden --type file --color always -E ".git" -E "GoogleDrive" -E "Library/Calendars" -E "Library/Application Support" -E "Library/Google" -E "Library/Group Containers" -E "Library/Containers" -E "Library/Caches" -E ".Trash" -E "node_modules" -E "*.zip" -E "*.dmg" -E "*.png" -E "*.jpg" -E "*.jpeg" -E "*.so" -E "*.db" -E "*.plist" -E "*.tar" -E "*.tar.gz" -E "*.7z" -E "*.ttf" -E "*.otf" -E "*.woff" -E "*.woff2" -E "*.dat" -E "*.sqlite" -E "*.sqlite3" -E "*.sqlite-wal" -E "*.sqlite-shm" -E "*.db-wal" -E "*.db-shm" -E "*.ico" -E "*.icns" -E ".DS_Store" -E ".localize"'
+set -x FZF_DEFAULT_OPTS '--ansi'
 
 # SET KUBERNETES EXECUTABLE PATHS
 #set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/helm/darwin-amd64
