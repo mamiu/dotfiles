@@ -33,17 +33,23 @@ fi
 
 # run command as target user
 # example:
-#   whoami               ==> root
-#   run_as_user whoami   ==> <TARGET_USER>
+#   whoami               ==>  root
+#   run_as_user whoami   ==>  <TARGET_USER>
+# If you want to access the users environment variable or perform a command substitution
+# (usually strings containing a dollar sign) wrap the string in single quotes like so:
+#   echo "$USER"                 ==>  echo '"$USER"'
+#   echo "$(curl example.com)"   ==>  echo '"$(curl example.com)"'
 run_as_user() {
     COMMAND="$@"
-    echo `sudo -Hu "$TARGET_USER" /bin/bash -c "$COMMAND"`
+    echo "`su - "$TARGET_USER" -c "$COMMAND"`"
 }
+
+TARGET_USER_HOME=$(run_as_user echo '$HOME')
 
 echo Starting installation of the most basic macOS dependencies...
 
 # Install homebrew
-run_as_user /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+run_as_user /usr/bin/ruby -e '"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"'
 
 # Install brew packages
 # highly recommended (basics)
@@ -55,39 +61,39 @@ run_as_user brew install git fish tmux ncdu vim kubernetes-cli fzf bat fd ripgre
 
 # Create a folder with symbolic links to all the gnu binaries
 mkdir /usr/local/gnubin
-chown -R $USER:admin /usr/local/gnubin/
+chown -R $TARGET_USER:admin /usr/local/gnubin/
 
 for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
-    run_as_user ln -s $gnuutil /usr/local/gnubin/
+    run_as_user ln -s "$gnuutil" /usr/local/gnubin/
 done
 
 for pybin in /usr/local/opt/python/libexec/bin/*; do
-    run_as_user ln -s $pybin /usr/local/gnubin/
+    run_as_user ln -s "$pybin" /usr/local/gnubin/
 done
 
 # Add /usr/local/gnubin as first line to /etc/paths
 sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
 
 # Install dotfiles
-run_as_user git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-run_as_user $HOME/.homesick/repos/homeshick/bin/homeshick clone -b mamiu/dotfiles
-run_as_user $HOME/.homesick/repos/homeshick/bin/homeshick link -f dotfiles
+run_as_user git clone https://github.com/andsens/homeshick.git "$TARGET_USER_HOME/.homesick/repos/homeshick"
+run_as_user "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+run_as_user "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 
 # Make fish the default shell
-sh -c 'echo $(which fish) >> /etc/shells'
-chsh -s $(which fish) $USER
+echo $(which fish) >> /etc/shells
+chsh -s $(which fish) $TARGET_USER
 
 # Generate ssh key pair
-run_as_user mkdir $HOME/.ssh
-run_as_user ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
+run_as_user mkdir "$TARGET_USER_HOME/.ssh"
+run_as_user ssh-keygen -b 2048 -t rsa -f "$TARGET_USER_HOME/.ssh/id_rsa" -q -N ""
 
 # Install fisher - a package manager for the fish shell
-run_as_user curl https://git.io/fisher --create-dirs -sLo $HOME/.config/fish/functions/fisher.fish
+run_as_user curl https://git.io/fisher --create-dirs -sLo "$TARGET_USER_HOME/.config/fish/functions/fisher.fish"
 run_as_user fish -c fisher
 
 # Install tmux plugin manager and tmux plugins
-run_as_user git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
-run_as_user tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+run_as_user git clone https://github.com/tmux-plugins/tpm $TARGET_USER_HOME/.tmux/plugins/tpm
+run_as_user tmux new-session '"$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"'
 
 # Disable the security assessment policy subsystem
 spctl --master-disable
