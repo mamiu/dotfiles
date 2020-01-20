@@ -40,11 +40,13 @@ sudo -Hu $TARGET_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubuserconte
 
 # Install brew packages
 # highly recommended (basics)
-sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash openssh python
+sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash openssh mosh python
 # recommended (cli tools)
 sudo -Hu $TARGET_USER brew install git fish tmux ncdu vim kubernetes-cli fzf bat fd ripgrep
 # optional
 # brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
+# macOS GUI apps
+brew cask install iterm2
 
 # Create a folder with symbolic links to all the gnu binaries
 mkdir /usr/local/gnubin
@@ -61,9 +63,21 @@ done
 # Add /usr/local/gnubin as first line to /etc/paths
 sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
 
-# Install dotfiles
+# Download dotfiles
 sudo -Hu $TARGET_USER git clone https://github.com/andsens/homeshick.git "$TARGET_USER_HOME/.homesick/repos/homeshick"
 sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+
+# Backup property list files in case they exist
+for file in $TARGET_USER_HOME/.homesick/repos/dotfiles/home/Library/Preferences/*
+do
+    plist_filename=$(basename "$file")
+    plist_path="$TARGET_USER_HOME/Library/Preferences/$plist_filename"
+    if [ -f "$plist_path" ]; then
+        mv "$plist_path" "${plist_path}_backup"
+    fi
+done
+
+# Install dotfiles
 sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 
 # Make fish the default shell
@@ -71,8 +85,10 @@ echo $(which fish) >> /etc/shells
 chsh -s $(which fish) $TARGET_USER
 
 # Generate ssh key pair
-sudo -Hu $TARGET_USER mkdir "$TARGET_USER_HOME/.ssh"
-sudo -Hu $TARGET_USER ssh-keygen -b 2048 -t rsa -f "$TARGET_USER_HOME/.ssh/id_rsa" -q -N ""
+if [ ! -d "$TARGET_USER_HOME/.ssh" ]; then
+    sudo -Hu $TARGET_USER mkdir "$TARGET_USER_HOME/.ssh"
+    sudo -Hu $TARGET_USER ssh-keygen -b 2048 -t rsa -f "$TARGET_USER_HOME/.ssh/id_rsa" -q -N ""
+fi
 
 # Install fisher - a package manager for the fish shell
 sudo -Hu $TARGET_USER curl https://git.io/fisher --create-dirs -sLo "$TARGET_USER_HOME/.config/fish/functions/fisher.fish"
@@ -95,15 +111,12 @@ chown root:wheel ./fira_code_2/otf/*
 mv fira_code_2/otf/* /Library/Fonts/
 rm -rf ./fira_code_2*
 
-# Install iTerm2
-sudo -Hu $TARGET_USER brew cask install iterm2
-
 # Done
 echo
 echo "All dependencies are installed successfully."
 echo
 echo "Now you can install the mac apps of your choise."
-echo "The browser will automatically open at step 14 of this guide:"
+echo "The browser will automatically open at step 16 of this guide:"
 echo "https://github.com/mamiu/dotfiles/blob/master/install/setup-os/macos.md"
 
-sudo -Hu $TARGET_USER open "https://github.com/mamiu/dotfiles/blob/master/install/setup-os/macos.md#14-install-mac-apps-only-the-ones-you-really-need"
+sudo -Hu $TARGET_USER open "https://github.com/mamiu/dotfiles/blob/master/install/setup-os/macos.md#16-install-mac-apps-only-the-ones-you-really-need"

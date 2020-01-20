@@ -8,7 +8,7 @@ I manage my config files with [homeshick](https://github.com/andsens/homeshick),
 Just run the following line in your terminal:
 
 ```bash
-curl -s https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l
+curl -s https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash
 ```
 
 That's all! Have fun :tada:

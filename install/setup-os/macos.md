@@ -18,11 +18,14 @@ bash
 
 ```bash
 # highly recommended (basics)
-brew install coreutils binutils diffutils findutils bash openssh python
+brew install coreutils binutils diffutils findutils bash openssh mosh python
 # recommended (cli tools)
-brew install git fish tmux ncdu vim kubernetes-cli
+brew install git fish tmux ncdu vim kubernetes-cli fzf bat fd ripgrep
 # optional
-brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
+# brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
+
+# macOS GUI apps
+brew cask install iterm2
 ```
 
 ## 4. Create a folder with symbolic links to all the gnu binaries
@@ -45,49 +48,75 @@ done
 sudo sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
 ```
 
-## 6. Install dotfiles
+## 6. Download dotfiles
 
 ```bash
 git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-$HOME/.homesick/repos/homeshick/bin/homeshick clone mamiu/dotfiles -b
-$HOME/.homesick/repos/homeshick/bin/homeshick link dotfiles
+$HOME/.homesick/repos/homeshick/bin/homeshick clone -b mamiu/dotfiles
 ```
 
-## 7. Make fish the default shell
+## 7. Backup property list files in case they exist
+
+```bash
+for file in $TARGET_USER_HOME/.homesick/repos/dotfiles/home/Library/Preferences/*
+do
+    plist_filename=$(basename "$file")
+    plist_path="$TARGET_USER_HOME/Library/Preferences/$plist_filename"
+    if [ -f "$plist_path" ]; then
+        cp "$plist_path" "${plist_path}_backup"
+    fi
+done
+```
+
+## 8. Install dotfiles
+
+```bash
+$HOME/.homesick/repos/homeshick/bin/homeshick link -f dotfiles
+```
+
+## 9. Make fish the default shell
 
 ```bash
 sudo sh -c 'echo $(which fish) >> /etc/shells'
 sudo chsh -s $(which fish) $USER
 ```
 
-## 8. Generate ssh key pair
+## 10. Generate ssh key pair
 
 ```bash
-mkdir $HOME/.ssh
-ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
+if [ ! -d "$HOME/.ssh" ]; then
+  mkdir $HOME/.ssh
+  ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
+fi
 ```
 
-## 9. Install fisher - a package manager for the fish shell
+## 11. Install fisher - a package manager for the fish shell
 
 ```bash
 curl https://git.io/fisher --create-dirs -sLo $HOME/.config/fish/functions/fisher.fish
 fish -c fisher
 ```
 
-## 10. Install tmux plugin manager and tmux plugins
+## 12. Install vim plugins
+
+```bash
+vim
+```
+
+## 13. Install tmux plugin manager and tmux plugins
 
 ```bash
 git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
 tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
 ```
 
-## 11. Disable the security assessment policy subsystem
+## 14. Disable the security assessment policy subsystem
 
 ```bash
 sudo spctl --master-disable
 ```
 
-## 12. Download and install FiraCode font
+## 15. Download and install FiraCode font
 
 ```bash
 curl -L https://github.com/tonsky/FiraCode/releases/download/2/FiraCode_2.zip -o fira_code_2.zip
@@ -97,13 +126,7 @@ sudo mv fira_code_2/otf/* /Library/Fonts/
 rm -rf ./fira_code_2*
 ```
 
-## 13. Install iTerm2
-
-```bash
-brew cask install iterm2
-```
-
-## 14. Install mac apps (only the ones you really need)
+## 16. Install mac apps (only the ones you really need)
 
 - Tools
   - [Clipy](https://github.com/Clipy/Clipy)
@@ -124,7 +147,7 @@ brew cask install iterm2
   - [(Cyberduck)](https://cyberduck.io/)
 - Development
   - [VS Code](https://code.visualstudio.com/)
-  - [iTerm2 (Version 3)](https://www.iterm2.com/version3.html)
+  - [iTerm2 (Version 3)](https://www.iterm2.com/version3.html) _Already installed with brew_
   - [Docker](https://hub.docker.com/?overlay=onboarding)
   - [Postman](https://www.getpostman.com/)
   - [Android Studio](https://developer.android.com/studio)
@@ -148,3 +171,4 @@ brew cask install iterm2
   - [VLC](https://www.videolan.org/)
   - [Spotify](https://www.spotify.com/)
 - MS Office
+  - [Office 365 for Mac](https://products.office.com/en-us/mac/microsoft-office-for-mac)
