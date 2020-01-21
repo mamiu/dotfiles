@@ -25,7 +25,7 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-read -p "Change root password [${bold_start}Y${bold_end}/n]: " change_root_password </dev/tty
+read -p "Change root password? [${bold_start}Y${bold_end}/n]: " change_root_password </dev/tty
 [ -z "$change_root_password" ] && change_root_password="y"
 case "${change_root_password:0:1}" in
     y|Y )
@@ -34,7 +34,7 @@ case "${change_root_password:0:1}" in
 esac
 
 if [ -z $ADMIN_USER ]; then
-    read -p "setup an admin user [${bold_start}Y${bold_end}/n]: " setup_admin_user </dev/tty
+    read -p "Setup an admin user? [${bold_start}Y${bold_end}/n]: " setup_admin_user </dev/tty
     [ -z "$setup_admin_user" ] && setup_admin_user="y"
 else
     setup_admin_user="y"
@@ -46,7 +46,7 @@ case "${setup_admin_user:0:1}" in
         users=(`awk -F':' '{ print $1}' /etc/passwd`)
 
         if [ -z $ADMIN_USER ]; then
-            read -p "Create a new user [${bold_start}Y${bold_end}/n]: " new_admin_user </dev/tty
+            read -p "Create a new user for the admin? [${bold_start}Y${bold_end}/n]: " new_admin_user </dev/tty
             [ -z "$new_admin_user" ] && new_admin_user="y"
         else
             admin_name=$ADMIN_USER
@@ -93,71 +93,49 @@ case "${setup_admin_user:0:1}" in
 
             ;;
         esac
-
-        read -p "Setup git for admin user [${bold_start}Y${bold_end}/n]: " setup_git </dev/tty
-        [ -z "$setup_git" ] && setup_git="y"
-        case "${setup_git:0:1}" in
-            y|y )
-                setup_git=true
-
-                # full name of admin user
-                read -p "Full name of the admin user: " admin_full_name </dev/tty
-                while [ -z "$admin_full_name" ]
-                do
-                    read -p "Full name of admin user cannot be blank. Please enter a valid name: " admin_full_name </dev/tty
-                done
-
-                # email address of admin user
-                read -p "Email address of admin user: " admin_email_address </dev/tty
-                while [ -z "$admin_email_address" ]
-                do
-                    read -p "Email address of admin user cannot be blank. Please enter a valid email address: " admin_email_address </dev/tty
-                done
-            ;;
-        esac
     ;;
 esac
 
-#dnf update vim-minimal
+
 dnf -y update
-dnf -y install git vim tmux fish
+dnf -y install git vim tmux fish mosh ncdu fzf bat fd-find ripgrep
 
-git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-$HOME/.homesick/repos/homeshick/bin/homeshick clone -b mamiu/dotfiles
-$HOME/.homesick/repos/homeshick/bin/homeshick link -f dotfiles
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+dnf install -y kubectl
 
+# Download and install dotfiles
+git clone https://github.com/andsens/homeshick.git "$HOME/.homesick/repos/homeshick"
+"$HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+"$HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
+
+# Make fish the default shell
+echo $(which fish) >> /etc/shells
+chsh -s $(which fish)
+
+# Generate ssh key pair
+if [ ! -d "$HOME/.ssh" ]; then
+    mkdir "$HOME/.ssh"
+    ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
+fi
+
+# Install fisher - a package manager for the fish shell
+curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
+fish -c fisher
+
+# Install vim plugins
+vim
+
+# Install tmux plugin manager and tmux plugins
 git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
-$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh
-
-if [ "$setup_admin_user" == true ]; then
-
-    runuser -l "$admin_name" -c "
-    git clone https://github.com/andsens/homeshick.git ~/.homesick/repos/homeshick
-    git clone https://github.com/mamiu/dotfiles.git ~/.homesick/repos/dotfiles
-    ~/.homesick/repos/homeshick/bin/homeshick link -f dotfiles
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-    # Press prefix + I (capital i, as in install) to fetch the plugins
-
-    if [ \"$setup_git\" == true ]; then
-        git config --global user.name \"$admin_full_name\"
-        git config --global user.email \"$admin_email_address\"
-    fi
-    "
-fi
-
-# install docker
-dnf -y install container-selinux libcgroup
-mkdir -p ~/tmp && cd ~/tmp
-wget "https://download.docker.com/linux/fedora/29/x86_64/stable/Packages/docker-ce-17.09.0.ce-1.fc29.x86_64.rpm"
-rpm -i docker-ce-17.09.0.ce-1.fc29.x86_64.rpm
-cd ~ && rm -rf ~/tmp
-dnf -y install docker-compose
-systemctl enable docker.service
-# if there's an admin user add it to the docker group
-if [ -n "$admin_name" ]; then
-    gpasswd -a $admin_name docker
-fi
-systemctl start docker
+tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
 ssh_config_file="/etc/ssh/sshd_config"
@@ -167,4 +145,3 @@ echo "# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_con
 echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
 systemctl restart sshd.service
-
