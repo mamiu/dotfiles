@@ -150,12 +150,11 @@ choose_remote_host()
 
     select host_option in "${host_options[@]}"
     do
-        [[ -n $host_option ]] || { echo "What's that? Please try again." >&2; continue; }
-        if [[ "$REPLY" =~ ^-?[0-9]+$ ]]; then
+        if [[ "$REPLY" =~ ^-?[1-9]+$ ]]; then
             if [ "$REPLY" -eq "1" ]; then
                 configure_new_server
                 break;
-            elif [ 1 -lt "$REPLY" ] && [ "$REPLY" -le  "${#host_options[@]}" ]; then
+            elif [ 1 -lt "$REPLY" ] && [ "$REPLY" -le "${#host_options[@]}" ]; then
                 hostname=(`ssh -G "$host_option" | grep "^hostname " | sed 's/hostname[ ]*//g'`)
                 port=(`ssh -G "$host_option" | grep "^port " | sed 's/port[ ]*//g'`)
                 username=(`ssh -G "$host_option" | grep "^user " | sed 's/user[ ]*//g'`)
@@ -206,22 +205,28 @@ call_installation_script()
     params=""
     if [ ! -z "$ADMIN_USER" ]; then
         params+="--admin-user=$ADMIN_USER"
-    else
-        params+="--admin-user=$USER"
     fi
 
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f $install_script ]; then
         $run_as_root "$install_script" "$params"
+        return_value="$?"
     else
         curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" -o "./${target_os}.sh"
         chmod +x "./${target_os}.sh"
         $run_as_root "./${target_os}.sh" "$params"
+        return_value="$?"
         rm -f "./${target_os}.sh"
     fi
 
     echo
-    echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
+
+    if (( return_value == 0 )); then
+        echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
+    else
+        echo "########## !!! ${bold_start}MAMIU/DOTFILES${bold_end} WAS NOT INSTALLED !!! ##########"
+    fi
+
     exit_program
 }
 

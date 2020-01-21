@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# helper variables to make text bold
+bold_start=$(tput bold)
+bold_end=$(tput sgr0)
+
 if [ $EUID != 0 ]; then
     echo "Installation script has to be called with root permissions!"
     exit 1
@@ -20,16 +24,90 @@ while [ "$#" -gt 0 ]; do
             shift
         ;;
         *)
-            echo "unknown option: $1" >&2
+            if [[ -n "${1// }" ]]; then
+                echo "unknown option: $1" >&2
+            fi
             shift
         ;;
     esac
 done
 
-if [ -z "$TARGET_USER" ]; then
-    echo "Target user must be specified via '-u <USERNAME>' or '--admin-user=<USERNAME>' script parameter"
-    exit 1
+all_users=()
+while IFS= read -r line; do
+    all_users+=( "$line" )
+done < <( dscl . list /Users | grep -v '^_' )
+
+if [ -n "$TARGET_USER" ] && [[ ! " ${all_users[@]} " =~ " ${TARGET_USER} " ]]; then
+    echo "Could not find the specified user $TARGET_USER on this system."
+
+    read -p "Do you want to install ${bold_start}mamiu/dotfiles${bold_end} for another user? [${bold_start}Y${bold_end}/n] " install_for_other_user </dev/tty
+    [ -z "$install_for_other_user" ] && install_for_other_user="y"
+    case "${install_for_other_user:0:1}" in
+        y|Y|yes|Yes )
+            install_for_other_user=true
+        ;;
+        * )
+            echo Abort installation
+            exit 1
+        ;;
+    esac
 fi
+
+if [ -z "$TARGET_USER" ] || [ "$install_for_other_user" == "true" ]; then
+
+    system_users=("daemon" "nobody" "root")
+
+    for target in "${system_users[@]}"; do
+        for i in "${!all_users[@]}"; do
+            if [[ ${all_users[i]} = $target ]]; then
+                unset 'all_users[i]'
+            fi
+        done
+    done
+
+    number_of_users=${#all_users[@]}
+
+    if (( number_of_users == 0 )); then
+        echo Couldn\'t find any user on this system
+        exit 1
+    elif (( number_of_users == 1 )); then
+        for element in ${all_users[@]}; do
+            user="$element"
+        done
+        TARGET_USER="$user"
+        echo "Only user ${bold_start}${TARGET_USER}${bold_end} was found on this macOS system."
+    else
+        echo Choose a user account where you want to install the dotfiles:
+
+        select user_option in "${all_users[@]}"
+        do
+            if [[ "$REPLY" =~ ^-?[1-9]+$ ]]; then
+                if [ "$REPLY" -le "${#all_users[@]}" ]; then
+                    TARGET_USER="$user_option"
+                    break;
+                else
+                    echo "Incorrect Input: Select a number 1-${#all_users[@]}"
+                fi
+            else
+                echo "Incorrect Input: Select a number 1-${#all_users[@]}"
+            fi
+        done </dev/tty || user_option="1"
+    fi
+fi
+
+# Confirm if dotfiles should be installed in TARGET_USER account
+read -p "Do you really want to install ${bold_start}mamiu/dotfiles${bold_end} for the user ${bold_start}${TARGET_USER}${bold_end}? [${bold_start}Y${bold_end}/n] " installation_confirmation </dev/tty
+[ -z "$installation_confirmation" ] && installation_confirmation="y"
+case "${installation_confirmation:0:1}" in
+    y|Y|yes|Yes )
+        echo
+        echo "Starting installation of the most basic macOS dependencies..."
+    ;;
+    * )
+        echo Abort installation
+        exit 1
+    ;;
+esac
 
 TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
 

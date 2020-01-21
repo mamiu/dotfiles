@@ -16,8 +16,11 @@ while [ "$#" -gt 0 ]; do
             shift
         ;;
         *)
-            echo "unknown option: $1" >&2
-            exit 1
+            if [[ -n "${1// }" ]]; then
+                echo "unknown option: $1" >&2
+                exit 1
+            fi
+            shift
         ;;
     esac
 done
