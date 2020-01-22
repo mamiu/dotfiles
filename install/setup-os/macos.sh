@@ -9,7 +9,7 @@ if [ $EUID != 0 ]; then
     exit 1
 fi
 
-while [ "$#" -gt 0 ]; do
+while [ $# -gt 0 ]; do
     case "$1" in
         -u)
             if [ -z "$2" ]; then
@@ -82,7 +82,7 @@ if [ -z "$TARGET_USER" ] || [ "$install_for_other_user" == "true" ]; then
         select user_option in "${all_users[@]}"
         do
             if [[ "$REPLY" =~ ^[1-9]+$ ]]; then
-                if [ "$REPLY" -le "${#all_users[@]}" ]; then
+                if [ $REPLY -le ${#all_users[@]} ]; then
                     TARGET_USER="$user_option"
                     break;
                 else

@@ -9,7 +9,7 @@ if [ $EUID != 0 ]; then
     exit 1
 fi
 
-while [ "$#" -gt 0 ]; do
+while [ $# -gt 0 ]; do
     case "$1" in
         -u)
             ADMIN_USER="$2"
@@ -34,6 +34,10 @@ read -p "Change root password? [${bold_start}Y${bold_end}/n]: " change_root_pass
 case "${change_root_password:0:1}" in
     y|Y )
         passwd </dev/tty
+        while [ $? -ne 0 ]
+        do
+            passwd </dev/tty
+        done
     ;;
 esac
 
@@ -72,6 +76,10 @@ create_admin_user() {
 
     adduser $new_admin_user
     passwd $new_admin_user </dev/tty
+    while [ $? -ne 0 ]
+    do
+        passwd $new_admin_user </dev/tty
+    done
     gpasswd -a $new_admin_user wheel
 
     echo "$new_admin_user"
@@ -146,42 +154,69 @@ EOF
 }
 
 setup_dotfiles() {
-    set -x
-
     # Download and install dotfiles
-    git clone https://github.com/andsens/homeshick.git "$HOME/.homesick/repos/homeshick"
-    "$HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
-    "$HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
+    if [ ! -d "$HOME/.homesick/repos/homeshick" ]; then
+        set -x
+        git clone https://github.com/andsens/homeshick.git "$HOME/.homesick/repos/homeshick"
+        set +x
+    fi
 
-    # Make fish the default shell
-    chsh -s $(which fish)
+    if [ -d "$HOME/.homesick/repos/dotfiles" ]; then
+        echo "Theres already a dotfiles repository in the '~/.homesick/repos/' directory."
+        echo "Cancel dotfiles installation for this user"
+        return 1
+    else
+        set -x
+        "$HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+        "$HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
+        set +x
+    fi
 
-    # Generate ssh key pair
-    if [ ! -d "$HOME/.ssh" ]; then
-        mkdir "$HOME/.ssh"
-        ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
+    # Install tmux plugin manager and tmux plugins
+    if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+        set -x
+        git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+        tmux new-session -s "$USER" -d "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+        set +x
+    fi
+
+    # Install vim plugins
+    if [ ! -d "$HOME/.vim/bundle" ]; then
+        set -x
+        vim
+        set +x
     fi
 
     # Install fisher - a package manager for the fish shell
-    curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
-    fish -c fisher
+    if [ ! -f "$HOME/.config/fish/functions/fisher.fish" ]; then
+        set -x
+        curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
+        fish -c fisher
+        set +x
+    fi
 
-    # Install vim plugins
-    vim
-
-    # Install tmux plugin manager and tmux plugins
-    git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
-    tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
-
-    set +x
+    # Generate ssh key pair
+    if [ ! -d "$HOME/.ssh" ]; then
+        set -x
+        mkdir "$HOME/.ssh"
+        ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
+        set +x
+    fi
 }
 
 install_basic_packages
+
 setup_dotfiles
+
+# Make fish the default shell for the root user
+chsh -s $(which fish)
 
 if [ $ADMIN_USER ]; then
     export -f setup_dotfiles
     su $ADMIN_USER -c "bash -c setup_dotfiles"
+
+    # Make fish the default shell
+    chsh -s $(which fish) $ADMIN_USER
 fi
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
