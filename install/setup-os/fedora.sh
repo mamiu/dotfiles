@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# helper variables to make text bold
+bold_start=$(tput bold)
+bold_end=$(tput sgr0)
+
 if [ $EUID != 0 ]; then
     echo "Installation script has to be called with root permissions!"
     exit 1
@@ -33,74 +37,100 @@ case "${change_root_password:0:1}" in
     ;;
 esac
 
-if [ -z $ADMIN_USER ]; then
-    read -p "Setup an admin user? [${bold_start}Y${bold_end}/n]: " setup_admin_user </dev/tty
-    [ -z "$setup_admin_user" ] && setup_admin_user="y"
-else
-    setup_admin_user="y"
-fi
-case "${setup_admin_user:0:1}" in
-    y|y )
-        setup_admin_user=true
+read -p "Change hostname (current hostname is ${bold_start}$(hostname)${bold_end})? [${bold_start}Y${bold_end}/n]: " change_hostname </dev/tty
+[ -z "$change_hostname" ] && change_hostname="y"
+case "${change_hostname:0:1}" in
+    y|Y )
+        read -p "New hostname: " new_hostname </dev/tty
+        while [ -z "$new_hostname" ] || [[ ! "$new_hostname" =~ ^[0-9a-zA-Z.-]+$ ]]
+        do
+            read -p "Hostname must only contain lowercase and uppercase letters, numbers, dashes (-) and dots (.): " new_hostname </dev/tty
+        done
 
-        users=(`awk -F':' '{ print $1}' /etc/passwd`)
-
-        if [ -z $ADMIN_USER ]; then
-            read -p "Create a new user for the admin? [${bold_start}Y${bold_end}/n]: " new_admin_user </dev/tty
-            [ -z "$new_admin_user" ] && new_admin_user="y"
-        else
-            admin_name=$ADMIN_USER
-
-            if [[ " ${users[@]} " =~ " ${ADMIN_USER} " ]]; then
-                new_admin_user="-"
-            else
-                new_admin_user="y"
-            fi
-        fi
-        case "${new_admin_user:0:1}" in
-            y|y )
-
-                if [ -z $ADMIN_USER ]; then
-                    read -p "Username for the new admin: " admin_name </dev/tty
-                    while [ -z "$admin_name" ] || [[ " ${users[@]} " =~ " ${admin_name} " ]]
-                    do
-                        read -p "Username is blank or does already exist. Please enter another username: " admin_name </dev/tty
-                    done
-                fi
-
-                adduser $admin_name
-                passwd $admin_name </dev/tty
-                gpasswd -a $admin_name wheel
-            ;;
-            n|N )
-
-                login_file="/etc/login.defs"
-                passwd_file="/etc/passwd"
-
-                # get mini UID limit
-                user_id_min=$(grep "^UID_MIN" $login_file)
-                # get max UID limit
-                user_id_max=$(grep "^UID_MAX" $login_file)
-
-                # use awk to print if UID >= $MIN and UID <= $MAX and shell is not /sbin/nologin
-                users=(`awk -F':' -v "min=${user_id_min##UID_MIN}" -v "max=${user_id_max##UID_MAX}" '{ if ( $3 >= min && $3 <= max  && $7 != "/sbin/nologin" ) print $1 }' "$passwd_file"`)
-
-                for user in "${users[@]}"; do
-                    echo "user: $user"
-                done
-
-                ##### TO-DO: select a user
-
-            ;;
-        esac
+        hostnamectl set-hostname "$new_hostname"
     ;;
 esac
 
+create_admin_user() {
+    all_users=(`awk -F':' '{ print $1}' /etc/passwd`)
 
-dnf -y update
-dnf -y install git vim tmux fish mosh ncdu fzf bat fd-find ripgrep
+    # ADMIN_USER is specified and already exists
+    if [ $ADMIN_USER ] && [[ " ${all_users[@]} " =~ " ${ADMIN_USER} " ]]; then
+        # no need to ask for the admin user or to create a new user account
+        return
+    fi
 
-cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+    if [ $ADMIN_USER ]; then
+        new_admin_user="$ADMIN_USER"
+    else
+        read -p "Username for the new admin: " new_admin_user </dev/tty
+        while [ -z "$new_admin_user" ] || [[ " ${all_users[@]} " =~ " ${new_admin_user} " ]]
+        do
+            read -p "Username is blank or does already exist. Please enter another username: " new_admin_user </dev/tty
+        done
+    fi
+
+    adduser $new_admin_user
+    passwd $new_admin_user </dev/tty
+    gpasswd -a $new_admin_user wheel
+
+    echo "$new_admin_user"
+}
+
+if [ $ADMIN_USER ]; then
+    create_admin_user
+else
+    read -p "Setup an admin user? [${bold_start}Y${bold_end}/n]: " setup_admin_user </dev/tty
+    [ -z "$setup_admin_user" ] && setup_admin_user="y"
+    case "${setup_admin_user:0:1}" in
+        y|Y )
+            # cross-linux method to get all human user accounts
+            login_file="/etc/login.defs"
+            passwd_file="/etc/passwd"
+            user_id_min=$(grep "^UID_MIN" $login_file)
+            user_id_max=$(grep "^UID_MAX" $login_file)
+            human_users=(`awk -F':' -v "min=${user_id_min##UID_MIN}" -v "max=${user_id_max##UID_MAX}" '{ if ( $3 >= min && $3 <= max  && $7 != "/sbin/nologin" ) print $1 }' "$passwd_file"`)
+
+            if [ ${#human_users[@]} -eq 0 ]; then
+                echo "Couldn't find user accounts. Therefore creating a new one."
+                ADMIN_USER=$(create_admin_user)
+            else
+                echo "For which user do you want to install the ${bold_start}mamiu/dotfiles${bold_end}:"
+
+                user_options=('Create new admin user')
+                user_options+=("${human_users[@]}")
+                user_options_length=(${#user_options[@]})
+
+                select user_option in "${user_options[@]}"
+                do
+                    if [[ "$REPLY" =~ ^-?[1-9]+$ ]]; then
+                        if (( REPLY == 1 )); then
+                            ADMIN_USER=$(create_admin_user)
+                            break;
+                        elif [ $REPLY -le $user_options_length ]; then
+                            ADMIN_USER="$user_option"
+                            break;
+                        else
+                            echo "Incorrect Input: Select a number 1-$user_options_length"
+                        fi
+                    else
+                        echo "Incorrect Input: Select a number 1-$user_options_length"
+                    fi
+                done </dev/tty || user_option="1"
+            fi
+        ;;
+    esac
+fi
+
+
+install_basic_packages() {
+    set -x
+
+    dnf -y update
+    dnf -y install git vim tmux fish mosh ncdu fzf bat fd-find ripgrep
+
+    set +x
+    cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
@@ -109,33 +139,50 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-dnf install -y kubectl
+    set -x
+    dnf install -y kubectl
 
-# Download and install dotfiles
-git clone https://github.com/andsens/homeshick.git "$HOME/.homesick/repos/homeshick"
-"$HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
-"$HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
+    set +x
+}
 
-# Make fish the default shell
-echo $(which fish) >> /etc/shells
-chsh -s $(which fish)
+setup_dotfiles() {
+    set -x
 
-# Generate ssh key pair
-if [ ! -d "$HOME/.ssh" ]; then
-    mkdir "$HOME/.ssh"
-    ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
+    # Download and install dotfiles
+    git clone https://github.com/andsens/homeshick.git "$HOME/.homesick/repos/homeshick"
+    "$HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+    "$HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
+
+    # Make fish the default shell
+    chsh -s $(which fish)
+
+    # Generate ssh key pair
+    if [ ! -d "$HOME/.ssh" ]; then
+        mkdir "$HOME/.ssh"
+        ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
+    fi
+
+    # Install fisher - a package manager for the fish shell
+    curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
+    fish -c fisher
+
+    # Install vim plugins
+    vim
+
+    # Install tmux plugin manager and tmux plugins
+    git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+    tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+
+    set +x
+}
+
+install_basic_packages
+setup_dotfiles
+
+if [ $ADMIN_USER ]; then
+    export -f setup_dotfiles
+    su $ADMIN_USER -c "bash -c setup_dotfiles"
 fi
-
-# Install fisher - a package manager for the fish shell
-curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
-fish -c fisher
-
-# Install vim plugins
-vim
-
-# Install tmux plugin manager and tmux plugins
-git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
-tmux new-session "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
 ssh_config_file="/etc/ssh/sshd_config"

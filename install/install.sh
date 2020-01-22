@@ -150,7 +150,7 @@ choose_remote_host()
 
     select host_option in "${host_options[@]}"
     do
-        if [[ "$REPLY" =~ ^-?[1-9]+$ ]]; then
+        if [[ "$REPLY" =~ ^[1-9]+$ ]]; then
             if [ "$REPLY" -eq "1" ]; then
                 configure_new_server
                 break;

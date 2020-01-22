@@ -81,7 +81,7 @@ if [ -z "$TARGET_USER" ] || [ "$install_for_other_user" == "true" ]; then
 
         select user_option in "${all_users[@]}"
         do
-            if [[ "$REPLY" =~ ^-?[1-9]+$ ]]; then
+            if [[ "$REPLY" =~ ^[1-9]+$ ]]; then
                 if [ "$REPLY" -le "${#all_users[@]}" ]; then
                     TARGET_USER="$user_option"
                     break;
