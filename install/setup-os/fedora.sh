@@ -133,23 +133,11 @@ fi
 
 install_basic_packages() {
     set -x
-
     dnf -y update
     dnf -y install git vim tmux fish mosh ncdu fzf bat fd-find ripgrep
 
-    { set +x; } 2>/dev/null
-    cat <<EOF > /etc/yum.repos.d/kubernetes.repo
-[kubernetes]
-name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-EOF
-    set -x
-    dnf install -y kubectl
-
+    # Install k3s
+    curl -sfL https://get.k3s.io | sh -
     { set +x; } 2>/dev/null
 }
 

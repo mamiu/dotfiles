@@ -113,8 +113,10 @@ TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
 
 echo Starting installation of the most basic macOS dependencies...
 
-# Install homebrew
-sudo -Hu $TARGET_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+# Install homebrew if it's not installed already
+if ! { sudo -Hu $TARGET_USER brew --help 2>&1 >/dev/null; } >/dev/null; then
+    sudo -Hu $TARGET_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
 
 # Install brew packages
 # highly recommended (basics)
@@ -127,19 +129,24 @@ sudo -Hu $TARGET_USER brew install git fish tmux ncdu vim kubernetes-cli fzf bat
 brew cask install iterm2
 
 # Create a folder with symbolic links to all the gnu binaries
-mkdir /usr/local/gnubin
-chown -R $TARGET_USER:admin /usr/local/gnubin/
+gnubin_dir="/usr/local/gnubin"
+if [ ! -d "$gnubin_dir" ]; then
+    mkdir /usr/local/gnubin
+    chown -R $TARGET_USER:admin "$gnubin_dir/"
 
-for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
-    sudo -Hu $TARGET_USER ln -s "$gnuutil" /usr/local/gnubin/
-done
+    for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
+        sudo -Hu $TARGET_USER ln -s "$gnuutil" "$gnubin_dir/"
+    done
 
-for pybin in /usr/local/opt/python/libexec/bin/*; do
-    sudo -Hu $TARGET_USER ln -s "$pybin" /usr/local/gnubin/
-done
+    for pybin in /usr/local/opt/python/libexec/bin/*; do
+        sudo -Hu $TARGET_USER ln -s "$pybin" "$gnubin_dir/"
+    done
+fi
 
 # Add /usr/local/gnubin as first line to /etc/paths
-sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
+if ! grep -Fxq "$gnubin_dir" /etc/paths; then
+    sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
+fi
 
 # Download homeshick
 if [ ! -d "$TARGET_USER_HOME/.homesick/repos/homeshick" ]; then
@@ -170,7 +177,9 @@ do
 done
 
 # Make fish the default shell
-echo $(which fish) >> /etc/shells
+if ! grep -Fxq "$(which fish)" /etc/shells; then
+    echo $(which fish) >> /etc/shells
+fi
 chsh -s $(which fish) $TARGET_USER
 
 # Generate ssh key pair
@@ -200,11 +209,13 @@ fi
 spctl --master-disable
 
 # Download and install FiraCode font
-curl -L https://github.com/tonsky/FiraCode/releases/download/2/FiraCode_2.zip -o ./fira_code_2.zip
-unzip fira_code_2.zip -d ./fira_code_2
-chown root:wheel ./fira_code_2/otf/*
-mv fira_code_2/otf/* /Library/Fonts/
-rm -rf ./fira_code_2*
+if ! ls /Library/Fonts/FiraCode-* >/dev/null 2>&1; then
+    curl -L https://github.com/tonsky/FiraCode/releases/download/2/FiraCode_2.zip -o ./fira_code_2.zip
+    unzip fira_code_2.zip -d ./fira_code_2
+    chown root:wheel ./fira_code_2/otf/*
+    mv fira_code_2/otf/* /Library/Fonts/
+    rm -rf ./fira_code_2*
+fi
 
 # Done
 echo
