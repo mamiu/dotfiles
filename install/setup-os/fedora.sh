@@ -137,7 +137,7 @@ install_basic_packages() {
     dnf -y update
     dnf -y install git vim tmux fish mosh ncdu fzf bat fd-find ripgrep
 
-    set +x
+    { set +x; } 2>/dev/null
     cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -150,7 +150,7 @@ EOF
     set -x
     dnf install -y kubectl
 
-    set +x
+    { set +x; } 2>/dev/null
 }
 
 setup_dotfiles() {
@@ -158,18 +158,18 @@ setup_dotfiles() {
     if [ ! -d "$HOME/.homesick/repos/homeshick" ]; then
         set -x
         git clone https://github.com/andsens/homeshick.git "$HOME/.homesick/repos/homeshick"
-        set +x
+        { set +x; } 2>/dev/null
     fi
 
     if [ -d "$HOME/.homesick/repos/dotfiles" ]; then
-        echo "Theres already a dotfiles repository in the '~/.homesick/repos/' directory."
+        echo "There's already a dotfiles repository in the '~/.homesick/repos/' directory."
         echo "Cancel dotfiles installation for this user"
         return 1
     else
         set -x
         "$HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
         "$HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
-        set +x
+        { set +x; } 2>/dev/null
     fi
 
     # Install tmux plugin manager and tmux plugins
@@ -177,14 +177,14 @@ setup_dotfiles() {
         set -x
         git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
         tmux new-session -s "$USER" -d "$HOME/.tmux/plugins/tpm/tpm && $HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
-        set +x
+        { set +x; } 2>/dev/null
     fi
 
     # Install vim plugins
     if [ ! -d "$HOME/.vim/bundle" ]; then
         set -x
         vim
-        set +x
+        { set +x; } 2>/dev/null
     fi
 
     # Install fisher - a package manager for the fish shell
@@ -192,7 +192,7 @@ setup_dotfiles() {
         set -x
         curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
         fish -c fisher
-        set +x
+        { set +x; } 2>/dev/null
     fi
 
     # Generate ssh key pair
@@ -200,7 +200,7 @@ setup_dotfiles() {
         set -x
         mkdir "$HOME/.ssh"
         ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
-        set +x
+        { set +x; } 2>/dev/null
     fi
 }
 

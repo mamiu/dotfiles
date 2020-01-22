@@ -141,22 +141,33 @@ done
 # Add /usr/local/gnubin as first line to /etc/paths
 sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
 
-# Download dotfiles
-sudo -Hu $TARGET_USER git clone https://github.com/andsens/homeshick.git "$TARGET_USER_HOME/.homesick/repos/homeshick"
-sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+# Download homeshick
+if [ ! -d "$TARGET_USER_HOME/.homesick/repos/homeshick" ]; then
+    sudo -Hu $TARGET_USER git clone https://github.com/andsens/homeshick.git "$TARGET_USER_HOME/.homesick/repos/homeshick"
+fi
 
-# Backup property list files in case they exist
-for file in $TARGET_USER_HOME/.homesick/repos/dotfiles/home/Library/Preferences/*
+# Download and install dotfiles
+if [ -d "$TARGET_USER_HOME/.homesick/repos/dotfiles" ]; then
+    echo "There's already a dotfiles repository in the '~/.homesick/repos/' directory."
+    echo "Dotfiles installation is cancelled."
+    exit 1
+else
+    sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+    sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
+fi
+
+# Backup property list files in case they exist and copy the new files to the app preferences folder
+app_preferences_path="$TARGET_USER_HOME/.homesick/repos/dotfiles/install/setup-os/additional-resources/macos/app-preferences"
+for file in $app_preferences_path/*
 do
     plist_filename=$(basename "$file")
-    plist_path="$TARGET_USER_HOME/Library/Preferences/$plist_filename"
-    if [ -f "$plist_path" ]; then
-        mv "$plist_path" "${plist_path}_backup"
+    plist_dir_path="$TARGET_USER_HOME/Library/Preferences"
+    plist_file_path="$plist_dir_path/$plist_filename"
+    if [ -f "$plist_file_path" ]; then
+        mv "$plist_file_path" "${plist_file_path}_backup"
     fi
+    cp "$app_preferences_path/$plist_filename" "$plist_dir_path/"
 done
-
-# Install dotfiles
-sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 
 # Make fish the default shell
 echo $(which fish) >> /etc/shells
@@ -169,15 +180,21 @@ if [ ! -d "$TARGET_USER_HOME/.ssh" ]; then
 fi
 
 # Install fisher - a package manager for the fish shell
-sudo -Hu $TARGET_USER curl https://git.io/fisher --create-dirs -sLo "$TARGET_USER_HOME/.config/fish/functions/fisher.fish"
-sudo -Hu $TARGET_USER fish -c fisher
+if [ ! -f "$TARGET_USER_HOME/.config/fish/functions/fisher.fish" ]; then
+    sudo -Hu $TARGET_USER curl https://git.io/fisher --create-dirs -sLo "$TARGET_USER_HOME/.config/fish/functions/fisher.fish"
+    sudo -Hu $TARGET_USER fish -c fisher
+fi
 
 # Install vim plugins
-sudo -Hu $TARGET_USER vim
+if [ ! -d "$TARGET_USER_HOME/.vim/bundle" ]; then
+    sudo -Hu $TARGET_USER vim
+fi
 
 # Install tmux plugin manager and tmux plugins
-sudo -Hu $TARGET_USER git clone https://github.com/tmux-plugins/tpm $TARGET_USER_HOME/.tmux/plugins/tpm
-sudo -Hu $TARGET_USER tmux new-session "$TARGET_USER_HOME/.tmux/plugins/tpm/tpm && $TARGET_USER_HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+if [ ! -d "$TARGET_USER_HOME/.tmux/plugins/tpm" ]; then
+    sudo -Hu $TARGET_USER git clone https://github.com/tmux-plugins/tpm $TARGET_USER_HOME/.tmux/plugins/tpm
+    sudo -Hu $TARGET_USER tmux new-session "$TARGET_USER_HOME/.tmux/plugins/tpm/tpm && $TARGET_USER_HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+fi
 
 # Disable the security assessment policy subsystem
 spctl --master-disable
