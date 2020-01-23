@@ -19,8 +19,16 @@ while [ $# -gt 0 ]; do
             ADMIN_USER="${1#*=}"
             shift
         ;;
+        -k)
+            PUBLIC_SSH_KEY="$2"
+            shift 2
+        ;;
+        --add-ssh-key=*)
+            PUBLIC_SSH_KEY="${1#*=}"
+            shift
+        ;;
         *)
-            if [[ -n "${1// }" ]]; then
+            if [ "${1// }" ]; then
                 echo "unknown option: $1" >&2
                 exit 1
             fi
@@ -189,6 +197,10 @@ setup_dotfiles() {
         mkdir "$HOME/.ssh"
         ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
         { set +x; } 2>/dev/null
+    fi
+
+    if [ "$PUBLIC_SSH_KEY" ]; then
+        echo "$PUBLIC_SSH_KEY" >> .ssh/authorized_keys
     fi
 }
 

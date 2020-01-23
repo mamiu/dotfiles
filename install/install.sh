@@ -5,22 +5,18 @@
 bold_start=$(tput bold)
 bold_end=$(tput sgr0)
 
-ssh_copy_id()
+get_public_ssh_key()
 {
-    # copy public id to the remote server
-    echo "########## ENABLING LOGIN WITHOUT PASSWORD ##########"
-    hostname=$1
-    port=$2
-    username=$3
-
-    key_file=~/.ssh/id_rsa
+    key_file="$HOME/.ssh/id_rsa"
     public_key_file="${key_file}.pub"
 
-    if [ ! -e $public_key_file ] ; then
+    if [ ! -f "$public_key_file" ] ; then
         ssh-keygen -t rsa -N "" -f $key_file
     fi
 
-    cat $public_key_file | ssh -o StrictHostKeyChecking=no -p $port $username@$hostname "mkdir -p ~/.ssh && cat >> .ssh/authorized_keys"
+    public_key="$(cat $public_key_file)"
+
+    echo "$public_key"
 }
 
 configure_new_server()
@@ -28,11 +24,11 @@ configure_new_server()
     echo
     echo "########## CONFIGURE NEW SERVER ##########"
 
-    # servers domain or ip address
-    read -p "Hostname or ip address of the server: " hostname </dev/tty
+    # servers domain or IP address
+    read -p "Hostname or IP address of the server: " hostname </dev/tty
     while ! ping -c1 -W1 "$hostname" >/dev/null 2>&1
     do
-        read -p "Host is not reachable. Please enter a valid hostname or ip address: " hostname </dev/tty
+        read -p "Host is not reachable. Please enter a valid hostname or IP address: " hostname </dev/tty
     done
 
     # servers port
@@ -62,14 +58,14 @@ configure_new_server()
     fi
 
     # add this config to ssh config
-    read -p "Add this config to ssh config? [${bold_start}Y${bold_end}/n] " add_ssh_config </dev/tty
+    read -p "Add this config to SSH config file? [${bold_start}Y${bold_end}/n] " add_ssh_config </dev/tty
     [ -z "$add_ssh_config" ] && add_ssh_config="y"
     case "${add_ssh_config:0:1}" in
         y|Y )
             add_ssh_config=true
 
             # nickname for the server
-            read -p "Nickname for the server: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
+            read -p "Nickname for this SSH login: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
             [ -z "$nickname" ] && nickname="$hostname"
             while [[ " ${hosts[@]} " =~ " ${nickname} " ]]
             do
@@ -78,10 +74,10 @@ configure_new_server()
             done
 
             # autostart tmux at login
-            read -p "Start tmux by default on login? [${bold_start}Y${bold_end}/n] " tmux_autostart </dev/tty
+            read -p "Start tmux by default on SSH login? [${bold_start}Y${bold_end}/n] " tmux_autostart </dev/tty
             [ -z "$tmux_autostart" ] && tmux_autostart="y"
             case "${tmux_autostart:0:1}" in
-                y|Y|yes|Yes )
+                y|Y )
                     tmux_autostart=true
                 ;;
                 * )
@@ -109,13 +105,13 @@ configure_new_server()
     if [ "$add_ssh_config" == true ]; then
         # add ssh configuration to ssh config file
 
-        ssh_config_file=~/.ssh/config
+        ssh_config_file="$HOME/.ssh/config"
 
-        if [ ! -e $ssh_config_file ] ; then
+        if [ ! -f "$ssh_config_file" ] ; then
             touch $ssh_config_file
         fi
 
-        if [ -w $ssh_config_file ] ; then
+        if [ -w "$ssh_config_file" ] ; then
             echo "" >> $ssh_config_file
             echo "Host $nickname" >> $ssh_config_file
             echo "    User $username" >> $ssh_config_file
@@ -125,15 +121,23 @@ configure_new_server()
                 echo "    SendEnv TMUX_AUTOSTART" >> $ssh_config_file
             fi
         else
-            echo cannot write to $ssh_config_file
+            echo "SSH configuration cannot be safed, because the SSH config file ($ssh_config_file) is not writable"
         fi
     fi
 
-    if [ "$ssh_copy_id" == true ] && [ "$user_exists" == true ]; then
-        ssh_copy_id $hostname $port $username
-    fi
+    # reboot server
+    read -p "Do you want to reboot the server after a successful setup? [${bold_start}Y${bold_end}/n] " reboot_server </dev/tty
+    [ -z "$reboot_server" ] && reboot_server="y"
+    case "${reboot_server:0:1}" in
+        y|Y )
+            reboot_after_installation=true
+        ;;
+        * )
+            reboot_after_installation=false
+        ;;
+    esac
 
-    setup_remote_host $hostname $port $username $user_exists $ssh_copy_id
+    setup_remote_host $hostname $port $username $user_exists $ssh_copy_id $reboot_after_installation
 }
 
 choose_remote_host()
@@ -151,10 +155,10 @@ choose_remote_host()
     select host_option in "${host_options[@]}"
     do
         if [[ "$REPLY" =~ ^[1-9]+$ ]]; then
-            if [ "$REPLY" -eq "1" ]; then
+            if [ $REPLY -eq 1 ]; then
                 configure_new_server
                 break;
-            elif [ 1 -lt "$REPLY" ] && [ "$REPLY" -le "${#host_options[@]}" ]; then
+            elif [ 1 -lt $REPLY ] && [ $REPLY -le ${#host_options[@]} ]; then
                 hostname=(`ssh -G "$host_option" | grep "^hostname " | sed 's/hostname[ ]*//g'`)
                 port=(`ssh -G "$host_option" | grep "^port " | sed 's/port[ ]*//g'`)
                 username=(`ssh -G "$host_option" | grep "^user " | sed 's/user[ ]*//g'`)
@@ -202,19 +206,22 @@ call_installation_script()
     target_os=$1
     install_script="${current_script_path}/setup-os/${target_os}.sh"
 
-    params=""
-    if [ ! -z "$ADMIN_USER" ]; then
-        params+="--admin-user=$ADMIN_USER"
+    params=()
+    if [ "$ADMIN_USER" ]; then
+        params+=("--admin-user=$ADMIN_USER")
+    fi
+    if [ "$PUBLIC_SSH_KEY" ]; then
+        params+=("--add-ssh-key=$PUBLIC_SSH_KEY")
     fi
 
     (( EUID != 0 )) && run_as_root="sudo"
-    if [ -f $install_script ]; then
-        $run_as_root "$install_script" "$params"
+    if [ -f "$install_script" ]; then
+        $run_as_root "$install_script" "${params[@]}"
         return_value="$?"
     else
         curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" -o "./${target_os}.sh"
         chmod +x "./${target_os}.sh"
-        $run_as_root "./${target_os}.sh" "$params"
+        $run_as_root "./$target_os.sh" "${params[@]}"
         return_value="$?"
         rm -f "./${target_os}.sh"
     fi
@@ -223,6 +230,11 @@ call_installation_script()
 
     if (( return_value == 0 )); then
         echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
+
+        if [ "$REBOOT_AFTER_INSTALLATION" == "true" ]; then
+            echo "Reboot system..."
+            $run_as_root reboot
+        fi
     else
         echo "########## !!! ${bold_start}MAMIU/DOTFILES${bold_end} WAS NOT INSTALLED !!! ##########"
     fi
@@ -235,13 +247,12 @@ check_os()
     echo
     uppercase_hostname=`echo "$HOSTNAME" | tr '[:lower:]' '[:upper:]'`
     echo "########## SETUP $uppercase_hostname ##########"
-    echo
 
     case "$OSTYPE" in
         linux*)
             os_release_file=/etc/os-release
 
-            if [ -e $os_release_file ] ; then
+            if [ -f "$os_release_file" ] ; then
                 source $os_release_file
 
                 if [ "$ID" == "fedora" ] && (( "$VERSION_ID" >= "29" )); then
@@ -282,6 +293,7 @@ setup_remote_host()
     username=$3
     user_exists=$4
     ssh_copy_id=$5
+    reboot_after_installation=$6
 
     if [ "$user_exists" == "false" ]; then
         user="root"
@@ -289,28 +301,38 @@ setup_remote_host()
         user=$username
     fi
 
-    echo "username: $user"
+    echo "username: $username"
     echo "hostname: $hostname"
 
-    # log into server and start install script
-    if [ "$user_exists" == "false" ]; then
-        ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting --admin-user=$username"
-    else
-        ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+
+    params="curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+    if [ "$username" != "root" ] && [ "$user_exists" == "false" ]; then
+        params+=" --admin-user=$username"
+    fi
+    if [ "$ssh_copy_id" == "true" ]; then
+        params+=" --add-ssh-key='$(get_public_ssh_key)'"
     fi
 
-    if [ "$ssh_copy_id" == true ] && [ "$user_exists" == false ]; then
-        ssh_copy_id $hostname $port $username
+    ssh-keygen -R "$hostname" >/dev/null 2>&1
+    if (( port != 22 )); then
+        echo port other than 22
+        ssh-keygen -R "$hostname:$port" >/dev/null 2>&1
     fi
 
-    # reboot server
-    read -p "Do you want to reboot the server? [${bold_start}Y${bold_end}/n] " reboot_server </dev/tty
-    [ -z "$reboot_server" ] && reboot_server="y"
-    case "${reboot_server:0:1}" in
-        y|Y )
-            ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "reboot"
-        ;;
-    esac
+    known_hosts_backup="$HOME/.ssh/known_hosts.old"
+    if [ -f "$known_hosts_backup" ] ; then
+        rm "$known_hosts_backup"
+    fi
+
+    echo "Adding host verification keys to ~/.ssh/known_hosts ..."
+    ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
+    for ip in $(dig @8.8.8.8 $hostname +short)
+    do
+        ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+    done
+
+    ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "$params"
 
     exit_program
 }
@@ -340,18 +362,22 @@ choose_install_target()
 }
 
 
-while [ "$#" -gt 0 ]; do
+while [ $# -gt 0 ]; do
   case "$1" in
     -r|--remote)
-        installation_target="remote"
+        INSTALLATION_TARGET="remote"
         shift
     ;;
     -l|--local)
-        installation_target="local"
+        INSTALLATION_TARGET="local"
         shift
     ;;
     -n|--no-greeting)
-        no_greeting=true
+        NO_GREETING=true
+        shift
+    ;;
+    -r|--reboot)
+        REBOOT_AFTER_INSTALLATION=true
         shift
     ;;
     -u)
@@ -362,6 +388,14 @@ while [ "$#" -gt 0 ]; do
         ADMIN_USER="${1#*=}"
         shift
     ;;
+    -k)
+        PUBLIC_SSH_KEY="$2"
+        shift 2
+    ;;
+    --add-ssh-key=*)
+        PUBLIC_SSH_KEY="${1#*=}"
+        shift
+    ;;
     *)
         echo "unknown option: $1" >&2
         exit_program 1
@@ -369,16 +403,16 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -z "$no_greeting" ]; then
+if [ -z "$NO_GREETING" ]; then
     echo
     echo "Welcome to the ${bold_start}mamiu/dotfiles${bold_end} setup script!"
 fi
 
-if [ -z "$installation_target" ]; then
+if [ -z "$INSTALLATION_TARGET" ]; then
     choose_install_target
-elif [ "$installation_target" == "remote" ]; then
+elif [ "$INSTALLATION_TARGET" == "remote" ]; then
     choose_remote_host
-elif [ "$installation_target" == "local" ]; then
+elif [ "$INSTALLATION_TARGET" == "local" ]; then
     check_os
 fi
 

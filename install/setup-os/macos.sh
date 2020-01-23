@@ -23,8 +23,16 @@ while [ $# -gt 0 ]; do
             TARGET_USER="${1#*=}"
             shift
         ;;
+        -k)
+            PUBLIC_SSH_KEY="$2"
+            shift 2
+        ;;
+        --add-ssh-key=*)
+            PUBLIC_SSH_KEY="${1#*=}"
+            shift
+        ;;
         *)
-            if [[ -n "${1// }" ]]; then
+            if [ "${1// }" ]; then
                 echo "unknown option: $1" >&2
             fi
             shift
@@ -37,13 +45,13 @@ while IFS= read -r line; do
     all_users+=( "$line" )
 done < <( dscl . list /Users | grep -v '^_' )
 
-if [ -n "$TARGET_USER" ] && [[ ! " ${all_users[@]} " =~ " ${TARGET_USER} " ]]; then
+if [ "$TARGET_USER" ] && [[ ! " ${all_users[@]} " =~ " ${TARGET_USER} " ]]; then
     echo "Could not find the specified user $TARGET_USER on this system."
 
     read -p "Do you want to install ${bold_start}mamiu/dotfiles${bold_end} for another user? [${bold_start}Y${bold_end}/n] " install_for_other_user </dev/tty
     [ -z "$install_for_other_user" ] && install_for_other_user="y"
     case "${install_for_other_user:0:1}" in
-        y|Y|yes|Yes )
+        y|Y )
             install_for_other_user=true
         ;;
         * )
@@ -99,7 +107,7 @@ fi
 read -p "Do you really want to install ${bold_start}mamiu/dotfiles${bold_end} for the user ${bold_start}${TARGET_USER}${bold_end}? [${bold_start}Y${bold_end}/n] " installation_confirmation </dev/tty
 [ -z "$installation_confirmation" ] && installation_confirmation="y"
 case "${installation_confirmation:0:1}" in
-    y|Y|yes|Yes )
+    y|Y )
         echo
         echo "Starting installation of the most basic macOS dependencies..."
     ;;
@@ -114,7 +122,7 @@ TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
 echo Starting installation of the most basic macOS dependencies...
 
 # Install homebrew if it's not installed already
-if ! { sudo -Hu $TARGET_USER brew --help 2>&1 >/dev/null; } >/dev/null; then
+if ! { sudo -Hu $TARGET_USER brew --help >/dev/null 2>&1; } >/dev/null; then
     sudo -Hu $TARGET_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 fi
 
