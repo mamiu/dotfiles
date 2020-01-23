@@ -204,7 +204,7 @@ fi
 
 # Install vim plugins
 if [ ! -d "$TARGET_USER_HOME/.vim/bundle" ]; then
-    sudo -Hu $TARGET_USER vim
+    sudo -Hu $TARGET_USER vim </dev/tty
 fi
 
 # Install tmux plugin manager and tmux plugins

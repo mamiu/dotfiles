@@ -231,7 +231,7 @@ call_installation_script()
     if (( return_value == 0 )); then
         echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
 
-        if [ "$REBOOT_AFTER_INSTALLATION" == "true" ]; then
+        if [ "$REBOOT_AFTER_INSTALLATION" ]; then
             echo "Reboot system..."
             $run_as_root reboot
         fi

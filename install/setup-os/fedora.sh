@@ -141,8 +141,20 @@ fi
 
 install_basic_packages() {
     set -x
-    dnf -y update
-    dnf -y install git vim tmux fish mosh ncdu fzf bat fd-find ripgrep
+    dnf update -y
+    dnf install -y git vim fish mosh ncdu fzf bat fd-find ripgrep
+
+    # Install tmux
+    dnf groupinstall -y "Development Tools"
+    dnf install -y libevent-devel ncurses-devel
+    wget https://github.com/tmux/tmux/releases/download/3.0a/tmux-3.0a.tar.gz
+    tar -xzf tmux-3.0a.tar.gz
+    cd tmux-3.0a/
+    ./configure
+    make
+    make install
+    cd ..
+    rm -rf ./tmux-3.0a/ ./tmux-3.0a.tar.gz
 
     # Install k3s
     curl -sfL https://get.k3s.io | sh -
@@ -179,7 +191,7 @@ setup_dotfiles() {
     # Install vim plugins
     if [ ! -d "$HOME/.vim/bundle" ]; then
         set -x
-        vim
+        vim </dev/tty
         { set +x; } 2>/dev/null
     fi
 
@@ -199,8 +211,8 @@ setup_dotfiles() {
         { set +x; } 2>/dev/null
     fi
 
-    if [ "$PUBLIC_SSH_KEY" ]; then
-        echo "$PUBLIC_SSH_KEY" >> .ssh/authorized_keys
+    if [ "$PUBLIC_SSH_KEY" ] && { [ -z "$ADMIN_USER" ] || [ "$ADMIN_USER" == "$USER" ]; }; then
+        echo "$PUBLIC_SSH_KEY" >> "$HOME/.ssh/authorized_keys"
     fi
 }
 
@@ -212,7 +224,13 @@ setup_dotfiles
 chsh -s $(which fish)
 
 if [ $ADMIN_USER ]; then
+    # export setup function so that it can be called from a different user
     export -f setup_dotfiles
+    # export all variables that are necessary for the installation
+    export ADMIN_USER
+    export PUBLIC_SSH_KEY
+
+    # execute the setup_dotfiles function as admin user
     su $ADMIN_USER -c "bash -c setup_dotfiles"
 
     # Make fish the default shell
