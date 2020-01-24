@@ -27,6 +27,14 @@ while [ $# -gt 0 ]; do
             PUBLIC_SSH_KEY="${1#*=}"
             shift
         ;;
+        -p)
+            NEW_SSH_PORT="$2"
+            shift 2
+        ;;
+        --new-ssh-port=*)
+            NEW_SSH_PORT="${1#*=}"
+            shift
+        ;;
         *)
             if [ "${1// }" ]; then
                 echo "unknown option: $1" >&2
@@ -241,6 +249,22 @@ fi
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
 ssh_config_file="/etc/ssh/sshd_config"
+
+if [ "$NEW_SSH_PORT" ]; then
+    # echo "$NEW_SSH_PORT"
+    port_line_number="$(awk '/^Port / {print FNR}' /etc/ssh/sshd_config)"
+    if [ "$port_line_number" ]; then
+        sed -i "${port_line_numbers}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
+    else
+        port_line_number="$(awk '/^#Port / {print FNR}' /etc/ssh/sshd_config)"
+        if [ "$port_line_number" ]; then
+            sed -i "${port_line_numbers}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
+        else
+            echo "" >> $ssh_config_file
+            echo "Port $NEW_SSH_PORT" >> $ssh_config_file
+        fi
+    fi
+fi
 
 echo "" >> $ssh_config_file
 echo "# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_config_file

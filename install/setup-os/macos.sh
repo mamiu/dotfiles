@@ -31,6 +31,14 @@ while [ $# -gt 0 ]; do
             PUBLIC_SSH_KEY="${1#*=}"
             shift
         ;;
+        -p)
+            NEW_SSH_PORT="$2"
+            shift 2
+        ;;
+        --new-ssh-port=*)
+            NEW_SSH_PORT="${1#*=}"
+            shift
+        ;;
         *)
             if [ "${1// }" ]; then
                 echo "unknown option: $1" >&2

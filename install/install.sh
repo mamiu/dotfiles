@@ -27,20 +27,43 @@ configure_new_server()
     echo
     echo "########## CONFIGURE NEW SERVER ##########"
 
-    # servers domain or IP address
+    # Servers domain or IP address
     read -p "Hostname or IP address of the server: " hostname </dev/tty
     while ! ping -c1 -W1 "$hostname" >/dev/null 2>&1
     do
         read -p "Host is not reachable. Please enter a valid hostname or IP address: " hostname </dev/tty
     done
 
-    # servers port
+    # SSH port
     read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port </dev/tty
     [ -z "$port" ] && port="22"
     while ! nc -z $hostname $port >/dev/null 2>&1
     do
         read -p "Port is not open. Please enter a valid port: " port </dev/tty
     done
+
+    # Change SSH port
+    if (( port == 22 )); then
+        read -p "Change SSH port to something else than 22? [${bold_start}Y${bold_end}/n] " change_ssh_port </dev/tty
+        [ -z "$change_ssh_port" ] && change_ssh_port="y"
+        case "${change_ssh_port:0:1}" in
+            y|Y )
+                change_ssh_port=true
+
+                # New SSH port
+                read -p "New SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
+                [ -z "$new_ssh_port" ] && new_ssh_port=22222
+                while [[ ! "$new_ssh_port" =~ ^[1-9]+$ ]]
+                do
+                    read -p "Only numbers are allowed as an SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
+                    [ -z "$new_ssh_port" ] && new_ssh_port=22222
+                done
+            ;;
+            * )
+                change_ssh_port=false
+            ;;
+        esac
+    fi
 
     # username with root privileges on the server
     read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username </dev/tty
@@ -119,7 +142,11 @@ configure_new_server()
             echo "Host $nickname" >> $ssh_config_file
             echo "    User $username" >> $ssh_config_file
             echo "    HostName $hostname" >> $ssh_config_file
-            echo "    Port $port" >> $ssh_config_file
+            if [ "$change_ssh_port" == "true" ]; then
+                echo "    Port $new_ssh_port" >> $ssh_config_file
+            else
+                echo "    Port $port" >> $ssh_config_file
+            fi
             if [ "$tmux_autostart" == true ]; then
                 echo "    SendEnv TMUX_AUTOSTART" >> $ssh_config_file
             fi
@@ -140,7 +167,7 @@ configure_new_server()
         ;;
     esac
 
-    setup_remote_host $hostname $port $username $user_exists $ssh_copy_id $reboot_after_installation
+    setup_remote_host $hostname $port $username $user_exists $ssh_copy_id $reboot_after_installation $change_ssh_port $new_ssh_port
 }
 
 choose_remote_host()
@@ -216,6 +243,10 @@ call_installation_script()
     if [ "$PUBLIC_SSH_KEY" ]; then
         params+=("--add-ssh-key=$PUBLIC_SSH_KEY")
     fi
+    if [ "$NEW_SSH_PORT" ]; then
+        params+=("--new-ssh-port=$NEW_SSH_PORT")
+    fi
+
 
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f "$install_script" ]; then
@@ -297,6 +328,8 @@ setup_remote_host()
     user_exists=$4
     ssh_copy_id=$5
     reboot_after_installation=$6
+    change_ssh_port=$7
+    new_ssh_port=$8
 
     if [ "$user_exists" == "false" ]; then
         user="root"
@@ -318,27 +351,55 @@ setup_remote_host()
     if [ "$ssh_copy_id" == "true" ]; then
         params+=" --add-ssh-key='$(get_public_ssh_key)'"
     fi
+    if [ "$change_ssh_port" == "true" ]; then
+        params+=" --new-ssh-port=$new_ssh_port"
+    fi
 
     ssh-keygen -R "$hostname" >/dev/null 2>&1
     if (( port != 22 )); then
-        echo port other than 22
-        ssh-keygen -R "$hostname:$port" >/dev/null 2>&1
-    fi
-
-    known_hosts_backup="$HOME/.ssh/known_hosts.old"
-    if [ -f "$known_hosts_backup" ] ; then
-        rm "$known_hosts_backup"
+        ssh-keygen -R "[${hostname}]:$port" >/dev/null 2>&1
     fi
 
     echo "Adding host verification keys to ~/.ssh/known_hosts ..."
     ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
     for ip in $(dig @8.8.8.8 $hostname +short)
     do
+        ssh-keygen -R "$ip" >/dev/null 2>&1
+        if (( port != 22 )); then
+            ssh-keygen -R "[${ip}]:$port" >/dev/null 2>&1
+        fi
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
     done
 
+    known_hosts_backup="$HOME/.ssh/known_hosts.old"
+    if [ -f "$known_hosts_backup" ] ; then
+        rm "$known_hosts_backup"
+    fi
+
     ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "$params"
+
+    if [ "$change_ssh_port" == "true" ]; then
+        ssh-keygen -R "$hostname" >/dev/null 2>&1
+        if (( port != 22 )); then
+            ssh-keygen -R "[${hostname}]:$port" >/dev/null 2>&1
+        fi
+        ssh-keygen -R "[${hostname}]:$new_ssh_port" >/dev/null 2>&1
+
+        echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."
+        ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        for ip in $(dig @8.8.8.8 $hostname +short)
+        do
+            ssh-keygen -R "$ip" >/dev/null 2>&1
+            if (( port != 22 )); then
+                ssh-keygen -R "[${ip}]:$port" >/dev/null 2>&1
+            fi
+            ssh-keygen -R "[${ip}]:$new_ssh_port" >/dev/null 2>&1
+
+            ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+            ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        done
+    fi
 
     exit_program
 }
@@ -400,6 +461,14 @@ while [ $# -gt 0 ]; do
     ;;
     --add-ssh-key=*)
         PUBLIC_SSH_KEY="${1#*=}"
+        shift
+    ;;
+    -p)
+        NEW_SSH_PORT="$2"
+        shift 2
+    ;;
+    --new-ssh-port=*)
+        NEW_SSH_PORT="${1#*=}"
         shift
     ;;
     *)
