@@ -1,6 +1,9 @@
 #!/bin/bash
 # MAMIU/DOTFILES SETUP SCRIPT
 
+# Log file path of the setup scripts
+INSTALLATION_LOG_FILE="/mamiu_dotfiles_setup.log"
+
 # helper variables to make text bold
 bold_start=$(tput bold)
 bold_end=$(tput sgr0)
@@ -216,12 +219,12 @@ call_installation_script()
 
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f "$install_script" ]; then
-        $run_as_root "$install_script" "${params[@]}"
+        $run_as_root "$install_script" "${params[@]}" |& $run_as_root tee $INSTALLATION_LOG_FILE
         return_value="$?"
     else
         curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" -o "./${target_os}.sh"
         chmod +x "./${target_os}.sh"
-        $run_as_root "./$target_os.sh" "${params[@]}"
+        $run_as_root "./$target_os.sh" "${params[@]}" |& $run_as_root tee $INSTALLATION_LOG_FILE
         return_value="$?"
         rm -f "./${target_os}.sh"
     fi
@@ -308,6 +311,9 @@ setup_remote_host()
     params="curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
     if [ "$username" != "root" ] && [ "$user_exists" == "false" ]; then
         params+=" --admin-user=$username"
+    fi
+    if [ "$reboot_after_installation" == "true" ]; then
+        params+=" --reboot"
     fi
     if [ "$ssh_copy_id" == "true" ]; then
         params+=" --add-ssh-key='$(get_public_ssh_key)'"

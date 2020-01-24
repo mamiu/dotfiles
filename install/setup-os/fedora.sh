@@ -83,6 +83,7 @@ create_admin_user() {
     fi
 
     adduser $new_admin_user
+    echo "Password for the new admin user" >/dev/tty
     passwd $new_admin_user </dev/tty
     while [ $? -ne 0 ]
     do
@@ -90,7 +91,7 @@ create_admin_user() {
     done
     gpasswd -a $new_admin_user wheel
 
-    echo "$new_admin_user"
+    ADMIN_USER="$new_admin_user"
 }
 
 if [ $ADMIN_USER ]; then
@@ -109,7 +110,7 @@ else
 
             if [ ${#human_users[@]} -eq 0 ]; then
                 echo "Couldn't find user accounts. Therefore creating a new one."
-                ADMIN_USER=$(create_admin_user)
+                create_admin_user
             else
                 echo "For which user do you want to install the ${bold_start}mamiu/dotfiles${bold_end}:"
 
@@ -121,7 +122,7 @@ else
                 do
                     if [[ "$REPLY" =~ ^-?[1-9]+$ ]]; then
                         if (( REPLY == 1 )); then
-                            ADMIN_USER=$(create_admin_user)
+                            create_admin_user
                             break;
                         elif [ $REPLY -le $user_options_length ]; then
                             ADMIN_USER="$user_option"
@@ -142,26 +143,34 @@ fi
 install_basic_packages() {
     set -x
     dnf update -y
-    dnf install -y git vim fish mosh ncdu fzf bat fd-find ripgrep
 
     # Install tmux
-    dnf groupinstall -y "Development Tools"
-    dnf install -y libevent-devel ncurses-devel
-    wget https://github.com/tmux/tmux/releases/download/3.0a/tmux-3.0a.tar.gz
-    tar -xzf tmux-3.0a.tar.gz
-    cd tmux-3.0a/
-    ./configure
-    make
-    make install
-    cd ..
-    rm -rf ./tmux-3.0a/ ./tmux-3.0a.tar.gz
+    if ! { tmux -V >/dev/null 2>&1; } >/dev/null; then
+        dnf groupinstall -y "Development Tools"
+        dnf install -y libevent-devel ncurses-devel
+        wget https://github.com/tmux/tmux/releases/download/3.0a/tmux-3.0a.tar.gz
+        tar -xzf tmux-3.0a.tar.gz
+        cd tmux-3.0a/
+        ./configure
+        make
+        make install
+        cd ..
+        rm -rf ./tmux-3.0a/ ./tmux-3.0a.tar.gz
+        dnf groupremove -y "Development Tools"
+        dnf remove -y libevent-devel ncurses-devel
+    fi
+
+    # install basic packages
+    dnf install -y git vim fish mosh ncdu htop fzf bat fd-find ripgrep
 
     # Install k3s
-    curl -sfL https://get.k3s.io | sh -
+    curl -sfL https://get.k3s.io | bash
     { set +x; } 2>/dev/null
 }
 
 setup_dotfiles() {
+    cd "$HOME"
+
     # Download and install dotfiles
     if [ ! -d "$HOME/.homesick/repos/homeshick" ]; then
         set -x
@@ -191,7 +200,7 @@ setup_dotfiles() {
     # Install vim plugins
     if [ ! -d "$HOME/.vim/bundle" ]; then
         set -x
-        vim </dev/tty
+        vim </dev/tty >/dev/tty
         { set +x; } 2>/dev/null
     fi
 
@@ -223,15 +232,8 @@ setup_dotfiles
 # Make fish the default shell for the root user
 chsh -s $(which fish)
 
-if [ $ADMIN_USER ]; then
-    # export setup function so that it can be called from a different user
-    export -f setup_dotfiles
-    # export all variables that are necessary for the installation
-    export ADMIN_USER
-    export PUBLIC_SSH_KEY
-
-    # execute the setup_dotfiles function as admin user
-    su $ADMIN_USER -c "bash -c setup_dotfiles"
+if [ "$ADMIN_USER" ]; then
+    sudo -u $ADMIN_USER /bin/bash -c "$(declare -f setup_dotfiles); ADMIN_USER='$ADMIN_USER'; PUBLIC_SSH_KEY='$PUBLIC_SSH_KEY'; setup_dotfiles"
 
     # Make fish the default shell
     chsh -s $(which fish) $ADMIN_USER
