@@ -201,8 +201,13 @@ chsh -s $(which fish) $TARGET_USER
 # Generate ssh key pair
 if [ ! -d "$TARGET_USER_HOME/.ssh" ]; then
     sudo -Hu $TARGET_USER mkdir "$TARGET_USER_HOME/.ssh"
+fi
+if [ ! -f "$TARGET_USER_HOME/.ssh/id_rsa" ]; then
     sudo -Hu $TARGET_USER ssh-keygen -b 2048 -t rsa -f "$TARGET_USER_HOME/.ssh/id_rsa" -q -N ""
 fi
+sudo -Hu $TARGET_USER chmod 700 $TARGET_USER_HOME/.ssh
+sudo -Hu $TARGET_USER chmod 600 $TARGET_USER_HOME/.ssh/*
+sudo -Hu $TARGET_USER chmod 644 $TARGET_USER_HOME/.ssh/*.pub
 
 # Install fisher - a package manager for the fish shell
 if [ ! -f "$TARGET_USER_HOME/.config/fish/functions/fisher.fish" ]; then

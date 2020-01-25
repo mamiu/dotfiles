@@ -224,9 +224,18 @@ setup_dotfiles() {
     if [ ! -d "$HOME/.ssh" ]; then
         set -x
         mkdir "$HOME/.ssh"
+        { set +x; } 2>/dev/null
+    fi
+    if [ ! -f "$HOME/.ssh/id_rsa" ]; then
+        set -x
         ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
         { set +x; } 2>/dev/null
     fi
+    set -x
+    chmod 700 $HOME/.ssh
+    chmod 600 $HOME/.ssh/*
+    chmod 644 $HOME/.ssh/*.pub
+    { set +x; } 2>/dev/null
 
     if [ "$PUBLIC_SSH_KEY" ] && { [ -z "$ADMIN_USER" ] || [ "$ADMIN_USER" == "$USER" ]; }; then
         echo "$PUBLIC_SSH_KEY" >> "$HOME/.ssh/authorized_keys"

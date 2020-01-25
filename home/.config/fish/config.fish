@@ -3,10 +3,12 @@ set -x LC_ALL en_US.UTF-8
 set -x LANG en_US.UTF-8
 set -x TERM xterm-256color
 set -x EDITOR vim
-set -x FZF_DEFAULT_COMMAND 'fd -H -t f -E .git -E GoogleDrive'
 
-set -x FZF_DEFAULT_COMMAND 'fd --hidden --type file --color always -E ".git" -E "GoogleDrive" -E "Library/Calendars" -E "Library/Application Support" -E "Library/Google" -E "Library/Group Containers" -E "Library/Containers" -E "Library/Caches" -E ".Trash" -E "node_modules" -E "*.zip" -E "*.dmg" -E "*.png" -E "*.jpg" -E "*.jpeg" -E "*.so" -E "*.db" -E "*.plist" -E "*.tar" -E "*.tar.gz" -E "*.7z" -E "*.ttf" -E "*.otf" -E "*.woff" -E "*.woff2" -E "*.dat" -E "*.sqlite" -E "*.sqlite3" -E "*.sqlite-wal" -E "*.sqlite-shm" -E "*.db-wal" -E "*.db-shm" -E "*.ico" -E "*.icns" -E ".DS_Store" -E ".localize"'
-set -x FZF_DEFAULT_OPTS '--ansi'
+set -gx FZF_GLOBAL_EXCLUDES -E '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
+set -gx FZF_DEFAULT_COMMAND "fd --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
+set -gx FZF_DEFAULT_OPTS "--ansi"
+set -gx FZF_ALT_C_OPTS "--info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
+set -gx FZF_CTRL_R_OPTS "--reverse --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
 
 # SET KUBERNETES EXECUTABLE PATHS
 #set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/helm/darwin-amd64
@@ -53,8 +55,19 @@ function vim
     if count $argv >/dev/null
         command vim $argv
     else
-        vim (fzf --preview 'bat --style=numbers --color=always {} | head -500')
+        command vim (fzf -m --height 40% --layout reverse --info inline --bind change:top --bind tab:toggle+down+clear-query --preview 'bat --style=numbers --color=always {} | head -500' --prompt='██ ' --color 'prompt:#dddddd,bg:#282828')
     end
+end
+
+# load fzf functions and keybindings
+fzf_key_bindings
+
+function cd
+    fzf-cd-widget
+end
+
+function history
+    fzf-history-widget
 end
 
 # ALIASES
@@ -80,4 +93,3 @@ set -g theme_show_exit_status yes
 set -g theme_display_jobs_verbose yes
 set -g theme_color_scheme base16
 #set -g theme_display_k8s_context yes
-

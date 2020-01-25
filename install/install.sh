@@ -372,11 +372,6 @@ setup_remote_host()
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
     done
 
-    known_hosts_backup="$HOME/.ssh/known_hosts.old"
-    if [ -f "$known_hosts_backup" ] ; then
-        rm "$known_hosts_backup"
-    fi
-
     ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "$params"
 
     if [ "$change_ssh_port" == "true" ]; then
@@ -387,7 +382,7 @@ setup_remote_host()
         ssh-keygen -R "[${hostname}]:$new_ssh_port" >/dev/null 2>&1
 
         echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."
-        ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
         for ip in $(dig @8.8.8.8 $hostname +short)
         do
             ssh-keygen -R "$ip" >/dev/null 2>&1
@@ -399,6 +394,11 @@ setup_remote_host()
             ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
             ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
         done
+    fi
+
+    known_hosts_backup="$HOME/.ssh/known_hosts.old"
+    if [ -f "$known_hosts_backup" ] ; then
+        rm "$known_hosts_backup"
     fi
 
     exit_program
