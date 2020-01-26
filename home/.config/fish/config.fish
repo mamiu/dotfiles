@@ -7,18 +7,10 @@ set -x EDITOR vim
 set -gx FZF_GLOBAL_EXCLUDES -E '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
 set -gx FZF_DEFAULT_COMMAND "fd --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
 set -gx FZF_DEFAULT_OPTS "--ansi"
-set -gx FZF_ALT_C_OPTS "--info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
+set -l DEFAULT_CD_COMMAND "command fd -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" 'BEGIN{ print home } { print $0 }'"
+set -gx FZF_ALT_C_COMMAND $DEFAULT_CD_COMMAND
+set -gx FZF_ALT_C_OPTS "-1 --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
 set -gx FZF_CTRL_R_OPTS "--reverse --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
-
-# SET KUBERNETES EXECUTABLE PATHS
-#set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/helm/darwin-amd64
-#set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/draft/darwin-amd64
-#set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/kubectl
-#set -x PATH $PATH /Users/manuel.miunske/.vs-kubernetes/tools/minikube/darwin-amd64
-#set -x PATH $PATH $HOME/.cargo/bin
-
-#set -x ANDROID_SDK $HOME/Library/Android/sdk
-#set -x PATH $ANDROID_SDK/emulator $ANDROID_SDK/tools $PATH
 
 # IMPORT FISH SCRIPTS
 source $HOME/.config/fish/fish_user_key_bindings.fish
@@ -63,11 +55,25 @@ end
 fzf_key_bindings
 
 function cd
-    fzf-cd-widget
+    if count $argv >/dev/null
+        if [ "$argv[1]" = ".." ]
+            set -gx FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
+            fzf-cd-widget
+            set -gx FZF_ALT_C_COMMAND "$DEFAULT_CD_COMMAND"
+        else
+            builtin cd $argv
+        end
+    else
+        fzf-cd-widget
+    end
 end
 
 function history
-    fzf-history-widget
+    if count $argv >/dev/null
+        builtin history $argv
+    else
+        fzf-history-widget
+    end
 end
 
 # ALIASES
@@ -75,7 +81,6 @@ alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
 alias ssh="env TMUX_AUTOSTART=true ssh"
 alias mosh="env TMUX_AUTOSTART=true mosh"
-#alias emu="nohup $HOME/Library/Android/sdk/emulator/emulator '@Pixel_3a_rooted_' >/dev/null 2>&1 &; disown"
 
 # BOBTHEFISH THEME CONFIGURATION
 set -g theme_display_git yes
@@ -92,4 +97,3 @@ set -g theme_powerline_fonts yes
 set -g theme_show_exit_status yes
 set -g theme_display_jobs_verbose yes
 set -g theme_color_scheme base16
-#set -g theme_display_k8s_context yes

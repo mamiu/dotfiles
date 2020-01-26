@@ -43,7 +43,7 @@ Bundle 'ctrlpvim/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
 " A Vim plugin which shows a git diff in the gutter (sign column)
 Bundle 'airblade/vim-gitgutter'
-"" Airline
+" Airline
 Bundle 'vim-airline/vim-airline'
 " Airline Themes
 Bundle 'vim-airline/vim-airline-themes'
@@ -55,9 +55,6 @@ Bundle 'tpope/vim-surround'
 Bundle 'jiangmiao/auto-pairs'
 " highlight intendation
 Bundle 'nathanaelkane/vim-indent-guides'
-" Python mode (indentation, doc, refactor, lints, code checking, motion and
-" operators, highlighting, run and ipdb breakpoints)
-"Bundle 'klen/python-mode'
 " Window chooser
 Bundle 't9md/vim-choosewin'
 " zoom panes
@@ -68,7 +65,7 @@ Bundle 'jmcantrell/vim-virtualenv'
 Bundle 'IndexedSearch'
 " XML/HTML tags navigation
 Bundle 'matchit.zip'
-"" Yank history navigation
+" Yank history navigation
 Bundle 'YankRing.vim'
 
 
@@ -394,6 +391,3 @@ no <expr> T Multift(-2,getchar(),-2)
 no <expr> t Multift(2,getchar(),2)
 no <expr> ; Multift(pvft,pvftc,pvft)
 " no <expr> , Multift(-pvft,pvftc,pvft)
-
-" YouCompleteMe
-"let g:ycm_python_binary_path = '/usr/bin/python'

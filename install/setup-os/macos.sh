@@ -136,7 +136,7 @@ fi
 
 # Install brew packages
 # highly recommended (basics)
-sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash openssh mosh python
+sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash openssh mosh python gawk
 # recommended (cli tools)
 sudo -Hu $TARGET_USER brew install git fish tmux ncdu vim kubernetes-cli fzf bat fd ripgrep
 # optional

@@ -33,7 +33,7 @@ function fzf_key_bindings
         set -l fzf_query $commandline[2]
 
         set -q FZF_ALT_C_COMMAND
-        or set -l FZF_ALT_C_COMMAND "command fd -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" '{ if(NR==1) print home; print $0 }'"
+        or set -l FZF_ALT_C_COMMAND "command fd -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" 'BEGIN{ print home } { print $0 }'"
         set -q FZF_TMUX_HEIGHT
         or set FZF_TMUX_HEIGHT 40%
         begin

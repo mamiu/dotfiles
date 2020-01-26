@@ -260,16 +260,16 @@ call_installation_script()
         rm -f "./${target_os}.sh"
     fi
 
-    echo
-
     if (( return_value == 0 )); then
-        echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
-
         if [ "$REBOOT_AFTER_INSTALLATION" ]; then
-            echo "Reboot system..."
-            $run_as_root reboot
+            echo "Reboot system in 30 seconds..."
+            ( sleep 3 && $run_as_root reboot )&
         fi
+
+        echo
+        echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
     else
+        echo
         echo "########## !!! ${bold_start}MAMIU/DOTFILES${bold_end} WAS NOT INSTALLED !!! ##########"
     fi
 
@@ -293,10 +293,10 @@ check_os()
                     call_installation_script "fedora"
                 elif [ "$ID" == "ubuntu" ]; then
                     echo "Ubuntu will be supported soon."
-                    exit_programm 1
+                    exit_program 1
                 else
                     echo "This linux distro isn't supported."
-                    exit_programm 1
+                    exit_program 1
                 fi
             else
                 echo "Couldn't specify the linux distro."
