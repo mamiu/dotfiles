@@ -262,8 +262,13 @@ call_installation_script()
 
     if (( return_value == 0 )); then
         if [ "$REBOOT_AFTER_INSTALLATION" ]; then
-            echo "Reboot system in 30 seconds..."
-            ( sleep 3 && $run_as_root reboot )&
+            if sudo -n true >/dev/null 2>&1; then
+                echo "Reboot system in 30 seconds..."
+                nohup sudo bash -c 'sleep 30 && reboot' >/dev/null &
+            else
+                echo "Cannot reboot system, because install script has no root privileges (anymore)."
+                echo "Please reboot the system manually."
+            fi
         fi
 
         echo

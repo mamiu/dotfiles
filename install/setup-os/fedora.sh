@@ -172,7 +172,7 @@ install_basic_packages() {
     dnf install -y git vim fish mosh ncdu htop fzf bat fd-find ripgrep
 
     # Install k3s
-    curl -sfL https://get.k3s.io | bash
+    curl -sfL https://get.k3s.io | bash -s - --write-kubeconfig-mode 644
     { set +x; } 2>/dev/null
 }
 
