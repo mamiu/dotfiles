@@ -7,8 +7,6 @@ set -x EDITOR vim
 set -gx FZF_GLOBAL_EXCLUDES --exclude '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
 set -gx FZF_DEFAULT_COMMAND "fd --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
 set -gx FZF_DEFAULT_OPTS "--ansi"
-set -l DEFAULT_CD_COMMAND "command fd -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" 'BEGIN{ print home } { print $0 }'"
-set -gx FZF_ALT_C_COMMAND $DEFAULT_CD_COMMAND
 set -gx FZF_ALT_C_OPTS "-1 --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
 set -gx FZF_CTRL_R_OPTS "--reverse --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
 
@@ -59,7 +57,7 @@ function cd
         if [ "$argv[1]" = ".." ]
             set -gx FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
             fzf-cd-widget
-            set -gx FZF_ALT_C_COMMAND "$DEFAULT_CD_COMMAND"
+            set -e FZF_ALT_C_COMMAND
         else
             builtin cd $argv
         end
