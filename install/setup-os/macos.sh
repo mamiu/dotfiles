@@ -174,10 +174,9 @@ if [ -d "$TARGET_USER_HOME/.homesick/repos/dotfiles" ]; then
     echo "There's already a dotfiles repository in the '~/.homesick/repos/' directory."
     echo "Dotfiles installation is cancelled."
     exit 1
-else
-    sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
-    sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 fi
+sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" clone -b mamiu/dotfiles
+sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 
 # Backup property list files in case they exist and copy the new files to the app preferences folder
 app_preferences_path="$TARGET_USER_HOME/.homesick/repos/dotfiles/install/setup-os/additional-resources/macos/app-preferences"
