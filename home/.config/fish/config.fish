@@ -1,8 +1,16 @@
-# SET VARIABLES
+# FISH SHELL CONFIGS
+set USE_TMUX_BY_DEFAULT false
+set ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS true
+
+# SET GLOBAL VARIABLES
 set -x LC_ALL en_US.UTF-8
 set -x LANG en_US.UTF-8
 set -x TERM xterm-256color
 set -x EDITOR vim
+
+if type -q bat
+    set -x MANPAGER "sh -c 'col -bx | bat -l man -p'"
+end
 
 set -gx FZF_GLOBAL_EXCLUDES --exclude '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
 set -gx FZF_DEFAULT_COMMAND "fd --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
@@ -20,12 +28,17 @@ set --erase fish_greeting
 
 # START TMUX IF TMUX_AUTOSTART ENVIRONMENT VARIABLE IS SET,
 # CURRENT SHELL IS LOGIN SHELL AND SHELL IS NOT INSIDE TMUX
-if test "$TMUX_AUTOSTART" = "true"
+if test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
     if status --is-login
         if test -z "$TMUX"
-            tmux attach >/dev/null ^&1
-            or tmux
-            and kill %self
+            if test -n "$SSH_CLIENT" -o -n "$SSH_CONNECTION" -o -n "$SSH_TTY" -o "$ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS" = "false"
+                tmux attach >/dev/null ^&1
+                or tmux
+                and kill %self
+            else
+                tmux
+                and kill %self
+            end
         end
     end
 end

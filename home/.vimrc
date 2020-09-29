@@ -206,6 +206,14 @@ nnoremap <C-V>     v
 vnoremap    v   <C-V>
 vnoremap <C-V>     v
 
+" move lines up and down with shift and arrow keys
+nnoremap <S-Up> mz:m .-2<CR>`z
+nnoremap <S-Down> mz:m .+1<CR>`z
+inoremap <S-Up> <Esc>:m .-2<CR>==gi
+inoremap <S-Down> <Esc>:m .+1<CR>==gi
+vnoremap <S-Up> :m '<-2<CR>gv=gv
+vnoremap <S-Down> :m '>+1<CR>gv=gv
+
 " intendation colors
 colorscheme default
 let g:indent_guides_enable_on_vim_startup = 1 
