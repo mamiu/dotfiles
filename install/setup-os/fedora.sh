@@ -35,6 +35,10 @@ while [ $# -gt 0 ]; do
             NEW_SSH_PORT="${1#*=}"
             shift
         ;;
+        --reboot=*)
+            REBOOT_AFTER_INSTALLATION=true
+            shift
+        ;;
         *)
             if [ "${1// }" ]; then
                 echo "unknown option: $1" >&2
@@ -171,8 +175,17 @@ install_basic_packages() {
     # install basic packages
     dnf install -y git vim fish mosh ncdu htop fzf bat fd-find ripgrep
 
+    # install k3s selinux compatibility packages
+    dnf install -y container-selinux selinux-policy-base
+    dnf install -y https://rpm.rancher.io/k3s-selinux-0.1.1-rc1.el7.noarch.rpm
+
     # Install k3s
-    curl -sfL https://get.k3s.io | bash -s - --write-kubeconfig-mode 644
+    curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest bash -s - \
+        --write-kubeconfig-mode "0644" \
+        --disable=servicelb \
+        --disable=traefik \
+        --disable=metrics-server \
+        --kube-apiserver-arg="service-node-port-range=80-32767"
     { set +x; } 2>/dev/null
 }
 
@@ -207,8 +220,9 @@ setup_dotfiles() {
 
     # Install vim plugins
     if [ ! -d "$HOME/.vim/bundle" ]; then
+        echo Installing vim plugins...
         set -x
-        vim </dev/tty >/dev/tty
+        echo | echo | vim +PluginInstall +qall &>/dev/null
         { set +x; } 2>/dev/null
     fi
 
@@ -280,3 +294,8 @@ echo "# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_con
 echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
 systemctl restart sshd.service
+
+if [ "$REBOOT_AFTER_INSTALLATION" ]; then
+    echo "Reboot system in 30 seconds..."
+    nohup bash -c 'sleep 30 && reboot' >/dev/null &
+fi
