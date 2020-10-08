@@ -274,14 +274,14 @@ fi
 ssh_config_file="/etc/ssh/sshd_config"
 
 if [ "$NEW_SSH_PORT" ]; then
-    # echo "$NEW_SSH_PORT"
-    port_line_number="$(awk '/^Port / {print FNR}' /etc/ssh/sshd_config)"
+    echo "Changing ssh port to: $NEW_SSH_PORT"
+    port_line_number="$(awk '/^Port / {print FNR}' $ssh_config_file)"
     if [ "$port_line_number" ]; then
-        sed -i "${port_line_numbers}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
+        sed -i "${port_line_number}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
     else
-        port_line_number="$(awk '/^#Port / {print FNR}' /etc/ssh/sshd_config)"
+        port_line_number="$(awk '/^#Port / {print FNR}' $ssh_config_file)"
         if [ "$port_line_number" ]; then
-            sed -i "${port_line_numbers}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
+            sed -i "${port_line_number}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
         else
             echo "" >> $ssh_config_file
             echo "Port $NEW_SSH_PORT" >> $ssh_config_file
@@ -299,3 +299,5 @@ if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
     nohup bash -c 'sleep 30 && reboot' >/dev/null &
 fi
+
+exit 0
