@@ -4,4 +4,5 @@ function fish_user_key_bindings
     bind \ck history-search-backward
     bind \cJ fzf-cd-widget
     bind \ew 'commandline -b "watch -n 1 $history[1]"; commandline -f repaint; commandline -f execute'
+    bind \es 'commandline -b "sudo $history[1]"; commandline -f repaint; commandline -f execute'
 end

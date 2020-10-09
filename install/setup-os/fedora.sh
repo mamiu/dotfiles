@@ -33,6 +33,7 @@ while [ $# -gt 0 ]; do
         ;;
         --new-ssh-port=*)
             NEW_SSH_PORT="${1#*=}"
+            echo "NEW_SSH_PORT: $NEW_SSH_PORT"
             shift
         ;;
         --reboot=*)
@@ -156,28 +157,19 @@ install_basic_packages() {
     set -x
     dnf update -y
 
-    # Install tmux
-    if ! { tmux -V >/dev/null 2>&1; } >/dev/null; then
-        dnf groupinstall -y "Development Tools"
-        dnf install -y libevent-devel ncurses-devel
-        wget https://github.com/tmux/tmux/releases/download/3.0a/tmux-3.0a.tar.gz
-        tar -xzf tmux-3.0a.tar.gz
-        cd tmux-3.0a/
-        ./configure
-        make
-        make install
-        cd ..
-        rm -rf ./tmux-3.0a/ ./tmux-3.0a.tar.gz
-        dnf groupremove -y "Development Tools"
-        dnf remove -y libevent-devel ncurses-devel
-    fi
+    # Just to make sure that the very basics are installed
+    dnf install -y util-linux-user tar
 
-    # install basic packages
-    dnf install -y git vim fish mosh ncdu htop fzf bat fd-find ripgrep
+    # Install most used packages
+    dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep
 
-    # install k3s selinux compatibility packages
+    # Install k3s selinux compatibility packages
     dnf install -y container-selinux selinux-policy-base
     dnf install -y https://rpm.rancher.io/k3s-selinux-0.1.1-rc1.el7.noarch.rpm
+
+    # Dependencies of k3s
+    # Switch back to cgroups v1 because k3s is not able to handle v2 yet
+    grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
 
     # Install k3s
     curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest bash -s - \
@@ -220,9 +212,8 @@ setup_dotfiles() {
 
     # Install vim plugins
     if [ ! -d "$HOME/.vim/bundle" ]; then
-        echo Installing vim plugins...
         set -x
-        echo | echo | vim +PluginInstall +qall &>/dev/null
+        vim +PluginInstall +qall &>/dev/null
         { set +x; } 2>/dev/null
     fi
 
@@ -267,7 +258,9 @@ if [ "$ADMIN_USER" ]; then
     sudo -u $ADMIN_USER /bin/bash -c "$(declare -f setup_dotfiles); ADMIN_USER='$ADMIN_USER'; PUBLIC_SSH_KEY='$PUBLIC_SSH_KEY'; setup_dotfiles"
 
     # Make fish the default shell
+    set -x
     chsh -s $(which fish) $ADMIN_USER
+    { set +x; } 2>/dev/null
 fi
 
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
@@ -293,11 +286,12 @@ echo "" >> $ssh_config_file
 echo "# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_config_file
 echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
-systemctl restart sshd.service
-
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
-    nohup bash -c 'sleep 30 && reboot' >/dev/null &
+    nohup bash -c 'sleep 30 && reboot' &>/dev/null &
+else
+    systemctl restart sshd.service
 fi
 
 exit 0
+
