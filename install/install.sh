@@ -63,10 +63,12 @@ configure_new_server()
                 change_ssh_port=false
             ;;
         esac
+    else
+        change_ssh_port=false
     fi
 
-    # username with root privileges on the server
-    read -p "User name with root privileges [default=${bold_start}root${bold_end}]: " username </dev/tty
+    # admin username
+    read -p "Admin user name (doesn't have to be an existing one) [default=${bold_start}root${bold_end}]: " username </dev/tty
     [ -z "$username" ] && username="root"
 
     if [ "$username" != "root" ]; then
@@ -81,6 +83,8 @@ configure_new_server()
                 user_exists=true
             ;;
         esac
+    else
+        user_exists=true
     fi
 
     # add this config to ssh config
@@ -336,28 +340,32 @@ setup_remote_host()
     change_ssh_port=$7
     new_ssh_port=$8
 
+    echo "username: $username"
+    echo "hostname: $hostname"
+
     if [ "$user_exists" == "false" ]; then
         user="root"
+        echo ""
+        echo "# YOU HAVE SPECIFIED \"${bold_start}${username}${bold_end}\" AS ADMIN USER."
+        echo "# BUT SINCE THIS USER DOESN'T EXIST YET, YOU HAVE"
+        echo "# TO LOGIN WITH THE \"${bold_start}root${bold_end}\" USER FOR THE INSTALLATION!"
+        echo ""
     else
         user=$username
     fi
 
-    echo "username: $username"
-    echo "hostname: $hostname"
-
-
-    params="curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting"
+    params=("curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting")
     if [ "$username" != "root" ] && [ "$user_exists" == "false" ]; then
-        params+=" --admin-user=$username"
+        params+=("--admin-user=$username")
     fi
     if [ "$reboot_after_installation" == "true" ]; then
-        params+=" --reboot"
+        params+=("--reboot")
     fi
     if [ "$ssh_copy_id" == "true" ]; then
-        params+=" --add-ssh-key='$(get_public_ssh_key)'"
+        params+=("--add-ssh-key='$(get_public_ssh_key)'")
     fi
     if [ "$change_ssh_port" == "true" ]; then
-        params+=" --new-ssh-port=$new_ssh_port"
+        params+=("--new-ssh-port=$new_ssh_port")
     fi
 
     ssh-keygen -R "$hostname" >/dev/null 2>&1
@@ -377,7 +385,7 @@ setup_remote_host()
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
     done
 
-    ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "$params"
+    ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "${params[@]}"
 
     if [ "$change_ssh_port" == "true" ]; then
         ssh-keygen -R "$hostname" >/dev/null 2>&1

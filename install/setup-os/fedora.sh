@@ -33,7 +33,6 @@ while [ $# -gt 0 ]; do
         ;;
         --new-ssh-port=*)
             NEW_SSH_PORT="${1#*=}"
-            echo "NEW_SSH_PORT: $NEW_SSH_PORT"
             shift
         ;;
         --reboot=*)
@@ -280,6 +279,8 @@ if [ "$NEW_SSH_PORT" ]; then
             echo "Port $NEW_SSH_PORT" >> $ssh_config_file
         fi
     fi
+
+    # TODO: if firewall is turned on, open the new port
 fi
 
 echo "" >> $ssh_config_file
