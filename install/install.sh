@@ -254,7 +254,7 @@ call_installation_script()
 
     (( EUID != 0 )) && run_as_root="sudo"
     if [ -f "$install_script" ]; then
-        $run_as_root "$install_script" "${params[@]}" |& $run_as_root tee $INSTALLATION_LOG_FILE
+        $run_as_root "$install_script" "${params[@]}" 2>&1 | $run_as_root tee $INSTALLATION_LOG_FILE
         return_value="$?"
     else
         curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" -o "./${target_os}.sh"
