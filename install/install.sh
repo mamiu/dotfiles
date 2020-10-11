@@ -259,7 +259,7 @@ call_installation_script()
     else
         curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" -o "./${target_os}.sh"
         chmod +x "./${target_os}.sh"
-        $run_as_root "./$target_os.sh" "${params[@]}" |& $run_as_root tee $INSTALLATION_LOG_FILE
+        $run_as_root "./$target_os.sh" "${params[@]}" 2>&1 | $run_as_root tee $INSTALLATION_LOG_FILE
         return_value="$?"
         rm -f "./${target_os}.sh"
     fi
