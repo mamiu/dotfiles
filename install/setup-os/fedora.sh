@@ -289,7 +289,7 @@ echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
-    nohup bash -c 'sleep 30 && reboot' &>/dev/null &
+    nohup setsid bash -c 'sleep 30 && reboot'
 else
     systemctl restart sshd.service
 fi

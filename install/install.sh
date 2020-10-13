@@ -388,14 +388,16 @@ setup_remote_host()
     ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "${params[@]}"
 
     if [ "$change_ssh_port" == "true" ]; then
+        echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."
+
         ssh-keygen -R "$hostname" >/dev/null 2>&1
         if (( port != 22 )); then
             ssh-keygen -R "[${hostname}]:$port" >/dev/null 2>&1
         fi
         ssh-keygen -R "[${hostname}]:$new_ssh_port" >/dev/null 2>&1
 
-        echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."
         ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
+
         for ip in $(dig @8.8.8.8 $hostname +short)
         do
             ssh-keygen -R "$ip" >/dev/null 2>&1
