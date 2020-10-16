@@ -30,14 +30,15 @@ set --erase fish_greeting
 # CURRENT SHELL IS LOGIN SHELL AND SHELL IS NOT INSIDE TMUX
 if test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
     if status --is-login
-        if test -z "$TMUX"
+        set -l TMUX_SESSIONS (tmux ls 2>&1 | cut -c-17)
+        if test "$TMUX_SESSIONS" = "no server running"
             if test -n "$SSH_CLIENT" -o -n "$SSH_CONNECTION" -o -n "$SSH_TTY" -o "$ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS" = "false"
                 tmux attach >/dev/null ^&1
                 or tmux
-                and kill %self
+                and kill -TERM %self
             else
                 tmux
-                and kill %self
+                and kill -TERM %self
             end
         end
     end
