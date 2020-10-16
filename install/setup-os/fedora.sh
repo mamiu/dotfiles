@@ -157,7 +157,7 @@ install_basic_packages() {
     dnf update -y
 
     # Just to make sure that the very basics are installed
-    dnf install -y util-linux-user tar
+    dnf install -y util-linux-user tar net-tools lsof at
 
     # Install most used packages
     dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep
@@ -173,8 +173,9 @@ install_basic_packages() {
     # Install k3s
     curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest bash -s - \
         --write-kubeconfig-mode "0644" \
-        --disable=servicelb \
         --disable=traefik \
+        --disable=servicelb \
+        --disable=local-storage \
         --disable=metrics-server \
         --kube-apiserver-arg="service-node-port-range=80-32767"
     { set +x; } 2>/dev/null
@@ -289,7 +290,8 @@ echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
-    nohup setsid bash -c 'sleep 30 && reboot'
+    echo "sleep 30; reboot" | at now 2>&1 >/dev/null
+    #tmux new-session -d -s reboot 'sleep 30; reboot'
 else
     systemctl restart sshd.service
 fi

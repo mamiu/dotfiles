@@ -225,6 +225,12 @@ if [ ! -d "$TARGET_USER_HOME/.tmux/plugins/tpm" ]; then
     sudo -Hu $TARGET_USER tmux new-session "$TARGET_USER_HOME/.tmux/plugins/tpm/tpm && $TARGET_USER_HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
 fi
 
+# Set most important defaults for developers
+defaults write -g ApplePressAndHoldEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -int 0
+defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -int 0
+defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -int 0
+
 # Disable the security assessment policy subsystem
 spctl --master-disable
 
