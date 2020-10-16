@@ -31,7 +31,7 @@ set --erase fish_greeting
 if test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
     if status --is-login
         set -l TMUX_SESSIONS (tmux ls 2>&1 | cut -c-17)
-        if test "$TMUX_SESSIONS" = "no server running"
+        if test "$TMUX_SESSIONS" = "no server running" -o -z "$TMUX"
             if test -n "$SSH_CLIENT" -o -n "$SSH_CONNECTION" -o -n "$SSH_TTY" -o "$ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS" = "false"
                 tmux attach >/dev/null ^&1
                 or tmux
@@ -40,6 +40,9 @@ if test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
                 tmux
                 and kill -TERM %self
             end
+        else
+            # redraw tmux window if a new shell is created
+            tmux refresh-client
         end
     end
 end
