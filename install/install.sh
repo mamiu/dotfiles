@@ -355,7 +355,7 @@ setup_remote_host()
     fi
 
     params=("curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting")
-    if [ "$username" != "root" ] && [ "$user_exists" == "false" ]; then
+    if [ "$username" != "root" ]; then
         params+=("--admin-user=$username")
     fi
     if [ "$reboot_after_installation" == "true" ]; then
