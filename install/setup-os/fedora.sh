@@ -156,11 +156,22 @@ install_basic_packages() {
     set -x
     dnf update -y
 
+    # Make sure fedora server packages are installed
+    # dnf gsudo dnf group install -y "Fedora Server Edition" "Infrastructure Server" --allowerasing
+
     # Just to make sure that the very basics are installed
-    dnf install -y util-linux-user tar net-tools lsof at
+    dnf install -y util-linux-user tar net-tools lsof at bind-utils
 
     # Install most used packages
     dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep
+
+    # Install cockpit (https://cockpit-project.org/)
+    dnf install -y polkit cockpit
+    systemctl enable --now cockpit.socket
+    systemctl start cockpit
+    if [ $(firewall-cmd --state --quiet) ]; then
+        firewall-cmd --add-service=cockpit --permanent
+    fi
 
     # Install k3s selinux compatibility packages
     dnf install -y container-selinux selinux-policy-base
