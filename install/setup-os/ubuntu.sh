@@ -95,14 +95,14 @@ create_admin_user() {
         done
     fi
 
-    adduser $new_admin_user
+    adduser --disabled-password --gecos "" $new_admin_user
     echo "Password for the new admin user" >/dev/tty
     passwd $new_admin_user </dev/tty
     while [ $? -ne 0 ]
     do
         passwd $new_admin_user </dev/tty
     done
-    gpasswd -a $new_admin_user wheel
+    usermod -aG sudo $new_admin_user
 
     ADMIN_USER="$new_admin_user"
 }
