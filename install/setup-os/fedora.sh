@@ -95,7 +95,7 @@ create_admin_user() {
     fi
 
     adduser $new_admin_user
-    echo "Password for the new admin user" >/dev/tty
+    echo "Password for the new admin user"
     passwd $new_admin_user </dev/tty
     while [ $? -ne 0 ]
     do
@@ -316,5 +316,5 @@ else
     systemctl restart sshd.service
 fi
 
+sleep 1
 exit 0
-

@@ -96,13 +96,13 @@ create_admin_user() {
     fi
 
     adduser --disabled-password --gecos "" $new_admin_user
-    echo "Password for the new admin user" >/dev/tty
+    echo "Password for the new admin user"
     passwd $new_admin_user </dev/tty
     while [ $? -ne 0 ]
     do
         passwd $new_admin_user </dev/tty
     done
-    usermod -aG sudo $new_admin_user
+    adduser $new_admin_user sudo
 
     ADMIN_USER="$new_admin_user"
 }
@@ -289,5 +289,5 @@ else
     systemctl restart sshd.service
 fi
 
+sleep 1
 exit 0
-
