@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # helper variables to make text bold
@@ -154,47 +155,22 @@ fi
 
 install_basic_packages() {
     set -x
-    dnf update -y
-
-    # Make sure fedora server packages are installed
-    dnf group install -y "Fedora Server Edition" "Infrastructure Server" --allowerasing
+    apt-get update -y
+    apt-get upgrade -y
 
     # Just to make sure that the very basics are installed
-    # util-linux-user  => chsh (change shell)
-    # tar              => an archiving utility
     # net-tools        => netstat (network statistics)
-    # lsof             => list open files
     # at               => run command at given time in the future
-    # bind-utils       => dig (DNS lookup utility)
-    dnf install -y util-linux-user tar net-tools lsof at bind-utils
+    apt-get install -y net-tools at
 
     # Install most used packages
-    dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep
+    apt-get install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep
 
     # Install cockpit (https://cockpit-project.org/)
-    dnf install -y polkit cockpit
+    apt-get install -y cockpit
     systemctl enable --now cockpit.socket
     systemctl start cockpit
-    if [ $(firewall-cmd --state --quiet) ]; then
-        firewall-cmd --add-service=cockpit --permanent
-    fi
 
-    # # Install k3s selinux compatibility packages
-    # dnf install -y container-selinux selinux-policy-base
-    # dnf install -y https://rpm.rancher.io/k3s-selinux-0.1.1-rc1.el7.noarch.rpm
-
-    # # Dependencies of k3s
-    # # Switch back to cgroups v1 because k3s is not able to handle v2 yet
-    # grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
-
-    # # Install k3s
-    # curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest bash -s - \
-    #     --write-kubeconfig-mode "0644" \
-    #     --disable=traefik \
-    #     --disable=servicelb \
-    #     --disable=local-storage \
-    #     --disable=metrics-server \
-    #     --kube-apiserver-arg="service-node-port-range=80-32767"
     { set +x; } 2>/dev/null
 }
 
@@ -299,9 +275,6 @@ if [ "$NEW_SSH_PORT" ]; then
     fi
 
     # TODO: if firewall is turned on, open the new port
-    if [ $(firewall-cmd --state --quiet) ]; then
-        firewall-cmd --add-service=sshd --permanent
-    fi
 fi
 
 echo "" >> $ssh_config_file

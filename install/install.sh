@@ -301,8 +301,7 @@ check_os()
                 if [ "$ID" == "fedora" ] && (( "$VERSION_ID" >= "29" )); then
                     call_installation_script "fedora"
                 elif [ "$ID" == "ubuntu" ]; then
-                    echo "Ubuntu will be supported soon."
-                    exit_program 1
+                    call_installation_script "ubuntu"
                 else
                     echo "This linux distro isn't supported."
                     exit_program 1
