@@ -1,4 +1,5 @@
 function fish_user_key_bindings
+    fzf_key_bindings
     bind \e\r accept-autosuggestion repaint execute
     bind \el 'commandline -a la; commandline -f execute'
     bind \ck history-search-backward
