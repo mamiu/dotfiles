@@ -18,9 +18,9 @@ end
 # FZF (FUZZY FINDER) CONFIGS
 set -gx FZF_GLOBAL_EXCLUDES --exclude '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
 set -gx FZF_DEFAULT_COMMAND "fd --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
-set -gx FZF_DEFAULT_OPTS "--ansi"
-set -gx FZF_ALT_C_OPTS "-1 --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
-set -gx FZF_CTRL_R_OPTS "--reverse --info inline --bind change:top --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
+set -gx FZF_DEFAULT_OPTS "--ansi -1 --multi --height 40% --layout reverse --info inline --bind change:top --bind alt-space:toggle --bind tab:toggle+clear-query --bind alt-enter:toggle+down --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
+set -gx FZF_ALT_C_OPTS ""
+set -gx FZF_CTRL_R_OPTS ""
 
 # BOBTHEFISH THEME CONFIGS
 set -g theme_display_git yes
@@ -45,15 +45,48 @@ set ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS true
 # IMPORT FISH SCRIPTS
 source $HOME/.homesick/repos/homeshick/homeshick.fish
 source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
-
-# DISABLE FISH GREETING
-set --erase fish_greeting
+if test -f $HOME/bin/google-cloud-sdk/path.fish.inc
+    source $HOME/bin/google-cloud-sdk/path.fish.inc
+end
 
 # ALIASES
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
 alias ssh="env TMUX_AUTOSTART=true ssh"
 alias mosh="env TMUX_AUTOSTART=true mosh"
+
+# ABBREVIATIONS
+if status --is-interactive
+    abbr --add e echo
+    abbr --add m mosh
+    abbr --add v vim
+    abbr --add b bat
+    abbr --add s sudo
+    abbr --add c curl
+    abbr --add g git
+    abbr --add gp 'git push'
+    abbr --add gc 'git commit -am "'
+    abbr --add gs 'git status'
+    abbr --add gd 'git diff'
+    abbr --add w 'watch -n 1'
+    abbr --add n 'netstat -tlpn'
+    abbr --add k 'kubectl'
+    abbr --add kg 'kubectl get'
+    abbr --add kga 'kubectl get all -A'
+    abbr --add kn 'kubectl -n'
+    abbr --add ks 'kubectl -n kube-system'
+    abbr --add ksa 'kubectl -n kube-system get all'
+    abbr --add ksn 'kubectl -n kube-system get pod -o name'
+    abbr --add ksna 'kubectl -n kube-system get all -o name'
+    abbr --add ksl 'kubectl -n kube-system logs'
+    abbr --add kvs 'set -l KUBE_CURRENT_NS'
+    abbr --add kv 'kubectl -n $KUBE_CURRENT_NS'
+    abbr --add kva 'kubectl -n $KUBE_CURRENT_NS get all'
+    abbr --add kvp 'kubectl -n $KUBE_CURRENT_NS get pods'
+    abbr --add kvn 'kubectl -n $KUBE_CURRENT_NS get pod -o name'
+    abbr --add kvna 'kubectl -n $KUBE_CURRENT_NS get all -o name'
+    abbr --add kvl 'kubectl -n $KUBE_CURRENT_NS logs'
+end
 
 # TMUX FISH INTEGRATION
 # only start tmux if current shell is login shell and either the "tmux_autostart"

@@ -11,13 +11,13 @@ end
 
 function __loading_spinner
     while kill -0 $argv[1]
-        __hide_cursor
+        # __hide_cursor
         for char in "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏"
             # move cursor to the beginning of the line before printing character
-            echo -en "\e[?25l\e[3000D $char $argv[2..-1]\e[?25h"
+            echo -en "\e[3000D $char $argv[2..-1] "
             sleep 0.06
         end
-        __show_cursor
+        # __show_cursor
     end
 end
 

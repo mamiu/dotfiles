@@ -1,9 +1,31 @@
+# default fish key bindings:
+# https://github.com/fish-shell/fish-shell/blob/master/share/functions/fish_default_key_bindings.fish
+
+# user defined key binding functions
+function __comment_and_execute_commandline
+    commandline -r "# "(commandline)
+    commandline -f execute
+end
+
+function __watch_last_command
+    commandline -b "watch -n 1 $history[1]"
+    commandline -f execute
+end
+
+function __sudo_prefix_last_command
+    commandline -b "sudo $history[1]"
+    commandline -f execute
+end
+
+# user defined key bindings
 function fish_user_key_bindings
     fzf_key_bindings
-    bind \e\r accept-autosuggestion repaint execute
+    bind \e\r accept-autosuggestion execute
     bind \el 'commandline -a la; commandline -f execute'
     bind \ck history-search-backward
-    bind \cJ fzf-cd-widget
-    bind \ew 'commandline -b "watch -n 1 $history[1]"; commandline -f repaint; commandline -f execute'
-    bind \es 'commandline -b "sudo $history[1]"; commandline -f repaint; commandline -f execute'
+    bind \eu upcase-word backward-word upcase-word
+    bind \cc __comment_and_execute_commandline
+    bind \cj fzf-cd-widget
+    bind \ew __watch_last_command
+    bind \es __sudo_prefix_last_command
 end
