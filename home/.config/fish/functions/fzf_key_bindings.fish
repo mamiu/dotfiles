@@ -17,17 +17,19 @@ function fzf_key_bindings
             # before 2.4.0.
             if [ "$FISH_MAJOR" -gt 2 -o \( "$FISH_MAJOR" -eq 2 -a "$FISH_MINOR" -ge 4 \) ]
                 if type -q bat
-                    commandline -- (
-                        builtin history -z |
-                        awk -v ORS='⏎ ' '1' |
-                        string replace -r '⏎ $' '' |
-                        string split0 |
-                        command bat --paging=never -p --color=always --italic-text=always -l bash |
-                        eval (__fzfcmd) -q '(commandline)' |
-                        string replace -ar '⏎ ' '\n'
-                    )
+                    and test $CTRL_R_ENABLE_COLORS = "true"
+                    builtin history -z |
+                    awk -v ORS='⏎ ' '1' |
+                    string replace -r '⏎ $' '' |
+                    string split0 |
+                    command bat --paging=never -p --color=always --italic-text=always -l bash |
+                    cut -c-400 |
+                    eval (__fzfcmd) --print0 -q '(commandline)' |
+                    string replace -ar '⏎ ' '\n' |
+                    read -gz result
+                    and commandline -- $result
                 else
-                    builtin history -z | eval (__fzfcmd) --read0 --print0 -q '(commandline)' | read -lz result
+                    builtin history -z | eval (__fzfcmd) --read0 --print0 -q '(commandline)' | read -gz result
                     and commandline -- $result
                 end
             else

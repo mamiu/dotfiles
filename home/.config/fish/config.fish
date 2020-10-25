@@ -41,6 +41,7 @@ set -g theme_color_scheme base16
 # FISH SHELL CONFIGS
 set USE_TMUX_BY_DEFAULT true
 set ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS true
+set -g CTRL_R_ENABLE_COLORS true # this option makes the CTRL-R function slower (just try it)
 
 # IMPORT FISH SCRIPTS
 source $HOME/.homesick/repos/homeshick/homeshick.fish
