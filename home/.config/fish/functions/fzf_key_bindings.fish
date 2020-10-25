@@ -16,13 +16,13 @@ function fzf_key_bindings
             # history's -z flag was added in fish 2.4.0, so don't use it for versions
             # before 2.4.0.
             if [ "$FISH_MAJOR" -gt 2 -o \( "$FISH_MAJOR" -eq 2 -a "$FISH_MINOR" -ge 4 \) ]
-                if type -q bat
+                if type -q $__BAT_CMD
                     and test $CTRL_R_ENABLE_COLORS = "true"
                     builtin history -z |
                     awk -v ORS='⏎ ' '1' |
                     string replace -r '⏎ $' '' |
                     string split0 |
-                    command bat --paging=never -p --color=always --italic-text=always -l bash |
+                    command $__BAT_CMD --paging=never -p --color=always --italic-text=always -l bash |
                     cut -c-400 |
                     eval (__fzfcmd) --print0 -q '(commandline)' |
                     string replace -ar '⏎ ' '\n' |
@@ -46,7 +46,7 @@ function fzf_key_bindings
         set -l fzf_query $commandline[2]
 
         set -q FZF_ALT_C_COMMAND
-        or set -l FZF_ALT_C_COMMAND "command fd -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" 'BEGIN{ print home } { print $0 }'"
+        or set -l FZF_ALT_C_COMMAND "command $__FD_CMD -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" 'BEGIN{ print home } { print $0 }'"
         set -q FZF_TMUX_HEIGHT
         or set FZF_TMUX_HEIGHT 40%
         begin

@@ -7,17 +7,31 @@ set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_DATA_HOME $HOME/.local/share
 
-# SET BAT AS PAGER IF IT IS INSTALLED
 if type -q bat
-    set -x PAGER "bat -p"
-    set -x MANPAGER "sh -c 'col -bx | bat -l man --style=plain,numbers'"
+    set -g __BAT_CMD (which bat)
+else if type -q batcat
+    set -g __BAT_CMD (which batcat)
+    alias bat=batcat
+end
+
+if type -q fd
+    set -g __FD_CMD (which fd)
+else if type -q fdfind
+    set -g __FD_CMD (which fdfind)
+    alias fd=fdfind
+end
+
+# SET BAT AS PAGER IF IT IS INSTALLED
+if type -q $__BAT_CMD
+    set -x PAGER "$__BAT_CMD -p"
+    set -x MANPAGER "sh -c 'col -bx | $__BAT_CMD -l man --style=plain,numbers'"
     set -x MANROFFOPT "-c"
-    set -x SYSTEMD_PAGER "bat -l log -p"
+    set -x SYSTEMD_PAGER "$__BAT_CMD -l log -p"
 end
 
 # FZF (FUZZY FINDER) CONFIGS
 set -gx FZF_GLOBAL_EXCLUDES --exclude '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
-set -gx FZF_DEFAULT_COMMAND "fd --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
+set -gx FZF_DEFAULT_COMMAND "$__FD_CMD --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
 set -gx FZF_DEFAULT_OPTS "--ansi -1 --multi --height 40% --layout reverse --info inline --bind change:top --bind alt-space:toggle --bind tab:toggle+clear-query --bind alt-enter:toggle+down --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
 set -gx FZF_ALT_C_OPTS ""
 set -gx FZF_CTRL_R_OPTS ""
@@ -61,7 +75,7 @@ if status --is-interactive
     abbr --add e echo
     abbr --add m mosh
     abbr --add v vim
-    abbr --add b bat
+    abbr --add b $__BAT_CMD
     abbr --add s sudo
     abbr --add c curl
     abbr --add g git
@@ -116,7 +130,7 @@ function vim
     if count $argv >/dev/null
         command vim $argv
     else
-        command vim (fzf -m --height 40% --layout reverse --info inline --bind change:top --bind tab:toggle+down+clear-query --preview 'bat --style=numbers --color=always {} | head -500' --prompt='██ ' --color 'prompt:#dddddd,bg:#282828')
+        command vim (fzf -m --height 40% --layout reverse --info inline --bind change:top --bind tab:toggle+down+clear-query --preview "$__BAT_CMD --style=numbers --color=always {} | head -500" --prompt="██ " --color "prompt:#dddddd,bg:#282828")
     end
 end
 
