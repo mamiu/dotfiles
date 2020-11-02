@@ -101,25 +101,13 @@ if status --is-interactive
     abbr --add --global ksna 'kubectl -n kube-system get all -o name'
     abbr --add --global ksl 'kubectl -n kube-system logs'
     abbr --add --global kvs 'set -l KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)'
-    # abbr --add --global kv 'kubectl -n $KUBE_CURRENT_NS'
-    # abbr --add --global kva 'kubectl -n $KUBE_CURRENT_NS get all'
-    # abbr --add --global kvp 'kubectl -n $KUBE_CURRENT_NS get pods'
-    # abbr --add --global kvn 'kubectl -n $KUBE_CURRENT_NS get pod -o name'
-    # abbr --add --global kvna 'kubectl -n $KUBE_CURRENT_NS get all -o name'
-    # abbr --add --global kvl 'kubectl -n $KUBE_CURRENT_NS logs'
     abbr --add --global kv "kubectl-namespaced"
     abbr --add --global kva "kubectl-namespaced get all"
     abbr --add --global kvp "kubectl-namespaced get pods"
     abbr --add --global kvn "kubectl-namespaced get pod -o name"
     abbr --add --global kvna "kubectl-namespaced get all -o name"
     abbr --add --global kvl "kubectl-namespaced logs"
-end
-
-function kubectl-namespaced
-    if test -z "$KUBE_CURRENT_NS"
-        set -g KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
-    end
-    kubectl -n $KUBE_CURRENT_NS $argv
+    abbr --add --global kve "kubectl-namespaced exec -it"
 end
 
 # TMUX FISH INTEGRATION
@@ -173,4 +161,33 @@ function history
     else
         fzf-history-widget
     end
+end
+
+function kubectl-namespaced
+    if test -z "$KUBE_CURRENT_NS"
+        set -g KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
+        if test $status -gt 0
+            return
+        end
+    end
+
+    if test $argv[1] = logs -o $argv[1] = exec
+        set -g KUBE_SELECTED_POD (kubectl -n $KUBE_CURRENT_NS get pods -o name | sed -e "s/^[^/]*\///g" | fzf)
+
+        if test -z "$KUBE_SELECTED_POD"
+            echo "Couldn't find any pod for namespace \"$KUBE_CURRENT_NS\""
+            return
+        end
+
+        if test $argv[1] = exec
+            commandline -b "kubectl -n $KUBE_CURRENT_NS $argv $KUBE_SELECTED_POD -- bash"
+        else
+            echo "Current namespace: $KUBE_CURRENT_NS"
+            kubectl -n $KUBE_CURRENT_NS $argv $KUBE_SELECTED_POD
+        end
+        return
+    end
+
+    echo "Current namespace: $KUBE_CURRENT_NS"
+    kubectl -n $KUBE_CURRENT_NS $argv
 end
