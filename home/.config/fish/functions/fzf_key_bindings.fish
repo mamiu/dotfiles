@@ -23,7 +23,6 @@ function fzf_key_bindings
                     string replace -r '⏎ $' '' |
                     string split0 |
                     command $__BAT_CMD --paging=never -p --color=always --italic-text=always -l bash |
-                    cut -c-400 |
                     eval (__fzfcmd) --print0 -q '(commandline)' |
                     string replace -ar '⏎ ' '\n' |
                     read -gz result

@@ -17,14 +17,25 @@ function __sudo_prefix_last_command
     commandline -f execute
 end
 
+function __append_fzf_and_execute
+    if test -n ( commandline )
+        commandline -r ( commandline | string trim )" | fzf"
+    else
+        commandline -b "$history[1] | fzf"
+    end
+    commandline -f execute
+end
+
 # user defined key bindings
 function fish_user_key_bindings
     fzf_key_bindings
     bind \e\r accept-autosuggestion execute
     bind \el 'commandline -a la; commandline -f execute'
+    bind \cf __append_fzf_and_execute
     bind \ck history-search-backward
     bind \eu upcase-word backward-word upcase-word
-    bind \cc __comment_and_execute_commandline
+    bind \cc kill-whole-line
+    bind \ec __comment_and_execute_commandline
     bind \cj fzf-cd-widget
     bind \ew __watch_last_command
     bind \es __sudo_prefix_last_command
