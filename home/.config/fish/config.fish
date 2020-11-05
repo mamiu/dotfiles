@@ -100,7 +100,7 @@ if status --is-interactive
     abbr --add --global ksn 'kubectl -n kube-system get pod -o name'
     abbr --add --global ksna 'kubectl -n kube-system get all -o name'
     abbr --add --global ksl 'kubectl -n kube-system logs'
-    abbr --add --global kvs 'set -l KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)'
+    abbr --add --global kvs 'set -g KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)'
     abbr --add --global kv "kubectl-namespaced"
     abbr --add --global kva "kubectl-namespaced get all"
     abbr --add --global kvp "kubectl-namespaced get pods"
@@ -118,13 +118,12 @@ if status --is-login
     # make sure that current shell is not inside tmux
     set -l TMUX_SESSIONS (tmux ls 2>&1 | cut -c-17)
     if test "$TMUX_SESSIONS" = "no server running" -o -z "$TMUX"
+        # not inside of tmux session therefore create new one
         if test -n "$SSH_CLIENT" -o -n "$SSH_CONNECTION" -o -n "$SSH_TTY" -o "$ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS" = "false"
-            tmux attach >/dev/null 2>&1
-            or tmux
-            and kill -TERM %self
+            # only try to attach to existing tmux session if in ssh session or if specified with config var
+            exec tmux new-session -A -s main
         else
-            tmux
-            and kill -TERM %self
+            exec tmux
         end
     else
         # redraw tmux window if a new shell is created
