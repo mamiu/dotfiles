@@ -169,7 +169,7 @@ install_basic_packages() {
     dnf install -y util-linux-user tar net-tools lsof at bind-utils
 
     # Install most used packages
-    dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep
+    dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
 
     # Install cockpit (https://cockpit-project.org/)
     dnf install -y polkit cockpit

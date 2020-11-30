@@ -457,7 +457,7 @@ while [ $# -gt 0 ]; do
         NO_GREETING=true
         shift
     ;;
-    -r|--reboot)
+    -b|--reboot)
         REBOOT_AFTER_INSTALLATION=true
         shift
     ;;

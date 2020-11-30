@@ -138,7 +138,7 @@ fi
 # highly recommended (basics)
 sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash openssh mosh python gawk
 # recommended (cli tools)
-sudo -Hu $TARGET_USER brew install git fish tmux vim ncdu htop kubernetes-cli fzf bat fd ripgrep reattach-to-user-namespace
+sudo -Hu $TARGET_USER brew install git fish tmux vim ncdu htop kubernetes-cli fzf bat fd ripgrep jq reattach-to-user-namespace
 # optional
 # brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
 # macOS GUI apps
