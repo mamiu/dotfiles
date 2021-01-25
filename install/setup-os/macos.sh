@@ -211,7 +211,7 @@ sudo -Hu $TARGET_USER chmod 644 $TARGET_USER_HOME/.ssh/*.pub
 # Install fisher - a package manager for the fish shell
 if [ ! -f "$TARGET_USER_HOME/.config/fish/functions/fisher.fish" ]; then
     sudo -Hu $TARGET_USER curl https://git.io/fisher --create-dirs -sLo "$TARGET_USER_HOME/.config/fish/functions/fisher.fish"
-    sudo -Hu $TARGET_USER fish -c fisher
+    sudo -Hu $TARGET_USER fish -c fisher update
 fi
 
 # Install vim plugins
