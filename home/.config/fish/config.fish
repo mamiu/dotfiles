@@ -1,4 +1,4 @@
-# SET GLOBAL VARIABLES
+# SET ENVIRONMENT VARIABLES
 set -x LC_ALL en_US.UTF-8
 set -x LANG en_US.UTF-8
 set -x TERM xterm-256color
@@ -7,6 +7,7 @@ set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_DATA_HOME $HOME/.local/share
 
+# CHECK IF BAT IS INSTALLED (CAT ALTERNATIVE)
 if type -q bat
     set -g __BAT_CMD (which bat)
 else if type -q batcat
@@ -14,6 +15,7 @@ else if type -q batcat
     alias bat=batcat
 end
 
+# CHECK IF FD IS INSTALLED (FIND ALTERNATIVE)
 if type -q fd
     set -g __FD_CMD (which fd)
 else if type -q fdfind
@@ -21,7 +23,7 @@ else if type -q fdfind
     alias fd=fdfind
 end
 
-# SET BAT AS PAGER IF IT IS INSTALLED
+# SET BAT AS PAGER (IF IT'S INSTALLED)
 if type -q $__BAT_CMD
     set -x PAGER "$__BAT_CMD -p"
     set -x MANPAGER "sh -c 'col -bx | $__BAT_CMD -l man --style=plain,numbers'"
@@ -60,7 +62,6 @@ set -g CTRL_R_ENABLE_COLORS true # this option makes the CTRL-R function slower 
 # IMPORT FISH SCRIPTS
 source $HOME/.homesick/repos/homeshick/homeshick.fish
 source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
-source $__fish_config_dir/functions/abbreviations.fish
 if test -f $HOME/bin/google-cloud-sdk/path.fish.inc
     source $HOME/bin/google-cloud-sdk/path.fish.inc
 end
@@ -72,9 +73,12 @@ alias ssh="env TMUX_AUTOSTART=true ssh"
 alias mosh="env TMUX_AUTOSTART=true mosh"
 
 # TMUX FISH INTEGRATION
-# only start tmux if current shell is login shell and either the "tmux_autostart"
-# environment variable or the "use_tmux_by_default" variable is set to true
+# Replace currently running shell with tmux if
+#  - current shell is a login shell AND
+#  - current shell is interactive AND
+#  - either the "$TMUX_AUTOSTART" environment variable or the "$USE_TMUX_BY_DEFAULT" variable is set to true
 if status --is-login
+    and status is-interactive
     and test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
     # make sure that current shell is not inside tmux
     set -l TMUX_SESSIONS (tmux ls 2>&1 | cut -c-17)
@@ -121,33 +125,4 @@ function history
     else
         fzf-history-widget
     end
-end
-
-function kubectl-namespaced
-    if test -z "$KUBE_CURRENT_NS"
-        set -g KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
-        if test $status -gt 0
-            return
-        end
-    end
-
-    if test $argv[1] = logs -o $argv[1] = exec
-        set -g KUBE_SELECTED_POD (kubectl -n $KUBE_CURRENT_NS get pods -o name | sed -e "s/^[^/]*\///g" | fzf)
-
-        if test -z "$KUBE_SELECTED_POD"
-            echo "Couldn't find any pod for namespace \"$KUBE_CURRENT_NS\""
-            return
-        end
-
-        if test $argv[1] = exec
-            commandline -b "kubectl -n $KUBE_CURRENT_NS $argv $KUBE_SELECTED_POD -- bash"
-        else
-            echo "Current namespace: $KUBE_CURRENT_NS"
-            kubectl -n $KUBE_CURRENT_NS $argv $KUBE_SELECTED_POD
-        end
-        return
-    end
-
-    echo "Current namespace: $KUBE_CURRENT_NS"
-    kubectl -n $KUBE_CURRENT_NS $argv
 end
