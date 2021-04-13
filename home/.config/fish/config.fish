@@ -77,8 +77,9 @@ alias mosh="env TMUX_AUTOSTART=true mosh"
 #  - current shell is a login shell AND
 #  - current shell is interactive AND
 #  - either the "$TMUX_AUTOSTART" environment variable or the "$USE_TMUX_BY_DEFAULT" variable is set to true
-if status --is-login
+if status is-login
     and status is-interactive
+    and not ps -o command $fish_pid | tail -1 | awk '{print $2}' | string match "*c*" >/dev/null
     and test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
     # make sure that current shell is not inside tmux
     set -l TMUX_SESSIONS (tmux ls 2>&1 | cut -c-17)
