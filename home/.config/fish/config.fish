@@ -95,6 +95,9 @@ end
 
 # CUSTOM USER FUNCTIONS
 
+# CUSTOM FZF INTEGRATION
+# more infos about fzf can be found here: https://github.com/junegunn/fzf
+# this custom fzf integration may be replaced in the future by this fish plugin: https://github.com/PatrickF1/fzf.fish
 if type -q fzf
     # FZF (FUZZY FINDER) CONFIGS
     set -gx FZF_ALT_C_OPTS ""
