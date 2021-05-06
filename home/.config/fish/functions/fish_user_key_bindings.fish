@@ -34,6 +34,18 @@ function __change_directory
     end
 end
 
+function __browse_history
+    if type -q fzf
+        fzf-history-widget
+    else
+        builtin history | less
+
+        echo -e "\n💡 Hint: You can reverse search the history by typing a few characters of"
+        echo "the command you want to execute again and then press the UP arrow key ⬆️"
+        commandline -f repaint
+    end
+end
+
 # user defined key bindings
 function fish_user_key_bindings
     fzf_key_bindings
@@ -45,6 +57,7 @@ function fish_user_key_bindings
     bind \cc kill-whole-line
     bind \ec __comment_and_execute_commandline
     bind \cj __change_directory
+    bind \cr __browse_history
     bind \ew __watch_last_command
     bind \es __sudo_prefix_last_command
 end

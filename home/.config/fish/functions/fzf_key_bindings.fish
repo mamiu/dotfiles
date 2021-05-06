@@ -37,7 +37,7 @@ function fzf_key_bindings
         set -l fzf_query $commandline[2]
 
         if not set -q FZF_ALT_C_COMMAND
-            if test $mode = "navigate-up"
+            if test "$mode" = "navigate-up"
                 set FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
             else if type -q $__FD_CMD
                 set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null"
