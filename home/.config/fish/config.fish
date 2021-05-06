@@ -140,9 +140,7 @@ if type -q fzf
     function cd
         if count $argv >/dev/null
             if [ "$argv[1]" = ".." ]
-                set -gx FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
-                fzf-cd-widget
-                set -e FZF_ALT_C_COMMAND
+                fzf-cd-widget navigate-up
             else
                 builtin cd $argv
             end

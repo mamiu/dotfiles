@@ -31,13 +31,15 @@ function fzf_key_bindings
         commandline -f repaint
     end
 
-    function fzf-cd-widget -d "Change directory"
+    function fzf-cd-widget -a mode -d "Change directory"
         set -l commandline (__fzf_parse_commandline)
         set -l dir $commandline[1]
         set -l fzf_query $commandline[2]
 
         if not set -q FZF_ALT_C_COMMAND
-            if type -q $__FD_CMD
+            if test $mode = "navigate-up"
+                set FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
+            else if type -q $__FD_CMD
                 set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null"
             else
                 set FZF_ALT_C_COMMAND "find * -type d $FZF_FIND_EXCLUDES 2>/dev/null"
@@ -45,10 +47,10 @@ function fzf_key_bindings
         end
 
         if type -q z
-            set FZF_ALT_C_COMMAND "fish -c \"z -l 2>/dev/null | awk '{ print \\\$2 }'; $FZF_ALT_C_COMMAND\""
+            set FZF_ALT_C_COMMAND "begin; z -l 2>/dev/null | awk '{ print \$2 }'; $FZF_ALT_C_COMMAND; end"
         end
 
-        set FZF_ALT_C_COMMAND "$FZF_ALT_C_COMMAND | awk -v home=\"$HOME\" 'BEGIN{ print home } { print $0 }'"
+        set FZF_ALT_C_COMMAND "begin; echo $HOME; $FZF_ALT_C_COMMAND; end"
 
         set -q FZF_TMUX_HEIGHT
         or set FZF_TMUX_HEIGHT 40%
