@@ -12,27 +12,19 @@ function fzf_key_bindings
             set -l FISH_MAJOR (echo $version | cut -f1 -d.)
             set -l FISH_MINOR (echo $version | cut -f2 -d.)
 
-            # history's -z flag is needed for multi-line support.
-            # history's -z flag was added in fish 2.4.0, so don't use it for versions
-            # before 2.4.0.
-            if [ "$FISH_MAJOR" -gt 2 -o \( "$FISH_MAJOR" -eq 2 -a "$FISH_MINOR" -ge 4 \) ]
-                if type -q $__BAT_CMD
-                    and test $CTRL_R_ENABLE_COLORS = "true"
-                    builtin history -z |
-                    awk -v ORS='⏎ ' '1' |
-                    string replace -r '⏎ $' '' |
-                    string split0 |
-                    command $__BAT_CMD --paging=never -p --color=always --italic-text=always -l bash |
-                    eval (__fzfcmd) --print0 -q '(commandline)' |
-                    string replace -ar '⏎ ' '\n' |
-                    read -gz result
-                    and commandline -- $result
-                else
-                    builtin history -z | eval (__fzfcmd) --read0 --print0 -q '(commandline)' | read -gz result
-                    and commandline -- $result
-                end
+            if type -q $__BAT_CMD
+                and test $CTRL_R_ENABLE_COLORS = "true"
+                builtin history -z |
+                awk -v ORS='⏎ ' '1' |
+                string replace -r '⏎ $' '' |
+                string split0 |
+                command $__BAT_CMD --paging=never -p --color=always --italic-text=always -l bash |
+                eval (__fzfcmd) --print0 -q '(commandline)' |
+                string replace -ar '⏎ ' '\n' |
+                read -gz result
+                and commandline -- $result
             else
-                builtin history | eval (__fzfcmd) -q '(commandline)' | read -l result
+                builtin history -z | eval (__fzfcmd) --read0 --print0 -q '(commandline)' | read -gz result
                 and commandline -- $result
             end
         end
@@ -44,8 +36,13 @@ function fzf_key_bindings
         set -l dir $commandline[1]
         set -l fzf_query $commandline[2]
 
-        set -q FZF_ALT_C_COMMAND
-        or set -l FZF_ALT_C_COMMAND "command $__FD_CMD -H -t d $FZF_GLOBAL_EXCLUDES 2>/dev/null | awk -v home="$HOME" 'BEGIN{ print home } { print $0 }'"
+        if not set -q FZF_ALT_C_COMMAND
+            if type -q $__FD_CMD
+                set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null | awk -v home=\"$HOME\" 'BEGIN{ print home } { print $0 }'"
+            else
+                set FZF_ALT_C_COMMAND "bash -c \"find * -type d $FZF_FIND_EXCLUDES 2>/dev/null\" | awk -v home=\"$HOME\" 'BEGIN{ print home } { print $0 }'"
+            end
+        end
         set -q FZF_TMUX_HEIGHT
         or set FZF_TMUX_HEIGHT 40%
         begin

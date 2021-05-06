@@ -1,7 +1,7 @@
 
 # ABBREVIATIONS
 if status --is-interactive
-    if test -n "$__BAT_CMD"
+    if type -q $__BAT_CMD
         abbr --add --global b $__BAT_CMD
     end
     abbr --add --global e echo

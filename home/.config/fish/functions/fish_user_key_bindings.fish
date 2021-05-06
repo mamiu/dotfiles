@@ -18,12 +18,20 @@ function __sudo_prefix_last_command
 end
 
 function __append_fzf_and_execute
-    if test -n ( commandline )
-        commandline -r ( commandline | string trim )" | fzf"
-    else
-        commandline -b "$history[1] | fzf"
+    if type -q fzf
+        if test -n ( commandline )
+            commandline -r ( commandline | string trim )" | fzf"
+        else
+            commandline -b "$history[1] | fzf"
+        end
+        commandline -f execute
     end
-    commandline -f execute
+end
+
+function __change_directory
+    if type -q fzf
+        fzf-cd-widget
+    end
 end
 
 # user defined key bindings
@@ -36,7 +44,7 @@ function fish_user_key_bindings
     bind \eu upcase-word backward-word upcase-word
     bind \cc kill-whole-line
     bind \ec __comment_and_execute_commandline
-    bind \cj fzf-cd-widget
+    bind \cj __change_directory
     bind \ew __watch_last_command
     bind \es __sudo_prefix_last_command
 end

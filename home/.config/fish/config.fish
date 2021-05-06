@@ -31,13 +31,6 @@ if type -q $__BAT_CMD
     set -x SYSTEMD_PAGER "$__BAT_CMD -l log -p"
 end
 
-# FZF (FUZZY FINDER) CONFIGS
-set -gx FZF_GLOBAL_EXCLUDES --exclude '".git"' -E '"GoogleDrive"' -E '"Library/Calendars"' -E '"Library/Application Support"' -E '"Library/Google"' -E '"Library/Group Containers"' -E '"Library/Containers"' -E '"Library/Caches"' -E '".Trash"' -E '"node_modules"' -E '"*.zip"' -E '"*.dmg"' -E '"*.png"' -E '"*.jpg"' -E '"*.jpeg"' -E '"*.so"' -E '"*.db"' -E '"*.plist"' -E '"*.tar"' -E '"*.tar.gz"' -E '"*.7z"' -E '"*.ttf"' -E '"*.otf"' -E '"*.woff"' -E '"*.woff2"' -E '"*.dat"' -E '"*.sqlite"' -E '"*.sqlite3"' -E '"*.sqlite-wal"' -E '"*.sqlite-shm"' -E '"*.db-wal"' -E '"*.db-shm"' -E '"*.ico"' -E '"*.icns"' -E '".DS_Store"' -E '".localize"'
-set -gx FZF_DEFAULT_COMMAND "$__FD_CMD --hidden --type file --color always $FZF_GLOBAL_EXCLUDES"
-set -gx FZF_DEFAULT_OPTS "--ansi -0 -1 --multi --height 40% --layout reverse --info inline --bind change:top --bind alt-space:toggle --bind tab:toggle+clear-query --bind alt-enter:toggle+down --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
-set -gx FZF_ALT_C_OPTS ""
-set -gx FZF_CTRL_R_OPTS ""
-
 # BOBTHEFISH THEME CONFIGS
 set -g theme_display_git yes
 set -g theme_display_git_master_branch yes
@@ -101,32 +94,65 @@ if status is-login
 end
 
 # CUSTOM USER FUNCTIONS
-function vim
-    if count $argv >/dev/null
-        command vim $argv
-    else
-        command vim (fzf -m --height 40% --layout reverse --info inline --bind change:top --bind tab:toggle+down+clear-query --preview "$__BAT_CMD --style=numbers --color=always {} | head -500" --prompt="██ " --color "prompt:#dddddd,bg:#282828")
-    end
-end
 
-function cd
-    if count $argv >/dev/null
-        if [ "$argv[1]" = ".." ]
-            set -gx FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
-            fzf-cd-widget
-            set -e FZF_ALT_C_COMMAND
+if type -q fzf
+    # FZF (FUZZY FINDER) CONFIGS
+    set -gx FZF_ALT_C_OPTS ""
+    set -gx FZF_CTRL_R_OPTS ""
+    set -gx FZF_DEFAULT_OPTS "--ansi -0 -1 --multi --height 40% --layout reverse --info inline --bind change:top --bind alt-space:toggle --bind tab:toggle+clear-query --bind alt-enter:toggle+down --prompt='██ ' --color 'prompt:#dddddd,bg:#282828'"
+
+    set -l FZF_EXCLUDED_DIRS '.git' 'GoogleDrive' 'Google Drive' 'Library' '.Trash' 'node_modules'
+    set -l FZF_EXCLUDED_FILES '*.zip' '*.tar' '*.tar.gz' '*.7z' '*.dmg' '*.png' '*.jpg' '*.jpeg' '*.so' '*.db' '*.plist' '*.ttf' '*.otf' '*.woff' '*.woff2' '*.dat' '*.sqlite' '*.sqlite3' '*.sqlite-wal' '*.sqlite-shm' '*.db-wal' '*.db-shm' '*.ico' '*.icns' '.DS_Store' '.localize'
+    set -l FZF_FD_EXCLUDES "-E='"$FZF_EXCLUDED_DIRS"'"
+    set -gx FZF_FD_EXCLUDES $FZF_FD_EXCLUDES "-E='"$FZF_EXCLUDED_FILES"'"
+    set -l FZF_FIND_EXCLUDES "-not \( -ipath '*"$FZF_EXCLUDED_DIRS"/*' -prune \)"
+    set -gx FZF_FIND_EXCLUDES $FZF_FIND_EXCLUDES "-not -iname '"$FZF_EXCLUDED_FILES"'"
+
+    if type -q $__FD_CMD
+        set -gx FZF_DEFAULT_COMMAND "$__FD_CMD --hidden --follow --type file $FZF_FD_EXCLUDES"
+    else
+        set -gx FZF_DEFAULT_COMMAND "bash -c \"find * -type f,l $FZF_FIND_EXCLUDES\""
+    end
+
+    # FZF SPECIFIC USER FUNCTIONS
+    function vim
+        if count $argv >/dev/null
+            command vim $argv
         else
-            builtin cd $argv
+            set -l fzf_params "-m"
+            set -l fzf_params $fzf_params "--height=40%"
+            set -l fzf_params $fzf_params "--layout=reverse"
+            set -l fzf_params $fzf_params "--info=inline"
+            set -l fzf_params $fzf_params "--bind=change:top"
+            set -l fzf_params $fzf_params "--bind=tab:toggle+down+clear-query"
+            set -l fzf_params $fzf_params "--prompt=██ "
+            set -l fzf_params $fzf_params "--color=prompt:#dddddd,bg:#282828"
+            if type -q $__BAT_CMD
+                set fzf_params $fzf_params "--preview=$__BAT_CMD --style=numbers --color=always {} | head -500"
+            end
+            command vim (fzf $fzf_params)
         end
-    else
-        fzf-cd-widget
     end
-end
 
-function history
-    if count $argv >/dev/null
-        builtin history $argv
-    else
-        fzf-history-widget
+    function cd
+        if count $argv >/dev/null
+            if [ "$argv[1]" = ".." ]
+                set -gx FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
+                fzf-cd-widget
+                set -e FZF_ALT_C_COMMAND
+            else
+                builtin cd $argv
+            end
+        else
+            fzf-cd-widget
+        end
+    end
+
+    function history
+        if count $argv >/dev/null
+            builtin history $argv
+        else
+            fzf-history-widget
+        end
     end
 end
