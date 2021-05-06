@@ -38,11 +38,18 @@ function fzf_key_bindings
 
         if not set -q FZF_ALT_C_COMMAND
             if type -q $__FD_CMD
-                set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null | awk -v home=\"$HOME\" 'BEGIN{ print home } { print $0 }'"
+                set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null"
             else
-                set FZF_ALT_C_COMMAND "bash -c \"find * -type d $FZF_FIND_EXCLUDES 2>/dev/null\" | awk -v home=\"$HOME\" 'BEGIN{ print home } { print $0 }'"
+                set FZF_ALT_C_COMMAND "find * -type d $FZF_FIND_EXCLUDES 2>/dev/null"
             end
         end
+
+        if type -q z
+            set FZF_ALT_C_COMMAND "fish -c \"z -l 2>/dev/null | awk '{ print \\\$2 }'; $FZF_ALT_C_COMMAND\""
+        end
+
+        set FZF_ALT_C_COMMAND "$FZF_ALT_C_COMMAND | awk -v home=\"$HOME\" 'BEGIN{ print home } { print $0 }'"
+
         set -q FZF_TMUX_HEIGHT
         or set FZF_TMUX_HEIGHT 40%
         begin
