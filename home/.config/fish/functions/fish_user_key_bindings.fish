@@ -30,13 +30,13 @@ end
 
 function __change_directory
     if type -q fzf
-        fzf-cd-widget
+        fzf-cd
     end
 end
 
 function __browse_history
     if type -q fzf
-        fzf-history-widget
+        fzf-history
     else
         builtin history | less
 
@@ -48,7 +48,7 @@ end
 
 # user defined key bindings
 function fish_user_key_bindings
-    fzf_key_bindings
+    fzf_commands
     bind \e\r accept-autosuggestion execute
     bind \el 'commandline -a la; commandline -f execute'
     bind \cf __append_fzf_and_execute
