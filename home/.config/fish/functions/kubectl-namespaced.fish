@@ -30,7 +30,12 @@ function kubectl-namespaced
             commandline -b "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" -- bash"
         else
             __print_current_namespace
-            kubectl -n "$KUBE_CURRENT_NS" $argv "$KUBE_SELECTED_POD" | bat -l log --style numbers
+            if type -q $__BAT_CMD
+                set logs_pager "$__BAT_CMD -l log --style numbers"
+            else
+                set logs_pager "less"
+            end
+            fish -c "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" | $logs_pager"
         end
         return
     end
