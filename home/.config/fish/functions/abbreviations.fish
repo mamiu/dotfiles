@@ -61,6 +61,7 @@ function abbreviations
       abbr --add --global ksp 'kubectl -n kube-system get pods'
       abbr --add --global ksl 'kubectl -n kube-system logs'
       abbr --add --global kn "kubectl-namespaced"
+      abbr --add --global kns "kubectl-namespaced sn"
       abbr --add --global kna "kubectl-namespaced get all"
       abbr --add --global knp "kubectl-namespaced get pods"
       abbr --add --global knan "kubectl-namespaced get all -o name"

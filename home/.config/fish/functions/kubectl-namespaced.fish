@@ -10,7 +10,8 @@ function kubectl-namespaced
         return 1
     end
 
-    if test -z "$KUBE_CURRENT_NS"
+    # You can set a namespace by passing the argument sn (set namespace) to this function
+    if test -z "$KUBE_CURRENT_NS" -o "$argv[1]" = "sn"
         set -g KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
         if test $status -gt 0
             return
@@ -35,7 +36,7 @@ function kubectl-namespaced
     end
 
     __print_current_namespace
-    if count $argv > /dev/null
+    if count $argv > /dev/null; and test "$argv[1]" != "sn"
         kubectl -n "$KUBE_CURRENT_NS" $argv
     end
 end
