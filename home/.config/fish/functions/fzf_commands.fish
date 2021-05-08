@@ -99,10 +99,8 @@ function fzf_commands
         set -l dir $commandline[1]
         set -l fzf_query $commandline[2]
 
-        if not set -q FZF_ALT_C_COMMAND
-            if test "$mode" = "navigate-up"
-                set FZF_ALT_C_COMMAND "command pwd | awk '@include \"join\"; { split(\$0, a, \"/\") } END { for (i = 1; i < length(a) - 1; i++) { print join(a, 1, length(a) - i, \"/\") } }'"
-            else if type -q $__FD_CMD
+        if not set -q FZF_ALT_C_COMMAND -a "$mode" != "navigate-up"
+            if type -q $__FD_CMD
                 set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null"
             else
                 set FZF_ALT_C_COMMAND "find * -type d $FZF_FIND_EXCLUDES 2>/dev/null"
@@ -110,10 +108,29 @@ function fzf_commands
         end
 
         if type -q z
-            set FZF_ALT_C_COMMAND "begin; z -l 2>/dev/null | awk '{ print \$2 }'; $FZF_ALT_C_COMMAND; end"
+            set FZF_ALT_C_COMMAND "begin; z -l 2>/dev/null | awk '{ print \$2 }' | sed -e \"s#$HOME#~#g\"; $FZF_ALT_C_COMMAND; end"
         end
 
-        set FZF_ALT_C_COMMAND "begin; echo $HOME; $FZF_ALT_C_COMMAND; end"
+        if test "$mode" = "navigate-up"
+            set -l PARENT_DIRS "command pwd | awk '
+                    @include \"join\"
+                    {
+                        split(\$0, a, \"/\")
+                    }
+                    END {
+                        for (i = 1; i < length(a) - 1; i++) {
+                            path = join(a, 1, length(a) - i, \"/\")
+                            print path
+                            if (path == \"$HOME\") {
+                                break;
+                            }
+                        }
+                    }
+                ' | sed -e \"s#$HOME#~#g\""
+            set FZF_ALT_C_COMMAND "begin; $PARENT_DIRS; $FZF_ALT_C_COMMAND; end"
+        else
+            set FZF_ALT_C_COMMAND "begin; echo $HOME; $FZF_ALT_C_COMMAND; end"
+        end
 
         set -q FZF_TMUX_HEIGHT
         or set FZF_TMUX_HEIGHT 40%
@@ -121,7 +138,11 @@ function fzf_commands
             set -lx FZF_DEFAULT_OPTS "--height $FZF_TMUX_HEIGHT --reverse $FZF_DEFAULT_OPTS $FZF_ALT_C_OPTS"
             eval "$FZF_ALT_C_COMMAND | "(__fzfcmd)' +m --query "'$fzf_query'"' | read -l result
 
-            if [ -n "$result" ]
+            if test -n "$result"
+                if string match -q '~*' "$result"
+                    string replace '~' "$HOME" "$result" | read result
+                end
+
                 builtin cd $result
 
                 # Remove last token from commandline.
