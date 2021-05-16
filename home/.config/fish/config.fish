@@ -51,6 +51,7 @@ else if type -q fdfind
 end
 
 # BOBTHEFISH THEME CONFIGS
+function fish_greeting -d "Override fish greeting function to disable the bobthefish greeting"; end
 set -g theme_display_git yes
 set -g theme_display_git_master_branch yes
 set -g theme_display_user ssh

@@ -14,7 +14,8 @@ function fzf_commands
         set -l FZF_EXCLUDED_FILES '*.zip' '*.tar' '*.tar.gz' '*.7z' '*.dmg' '*.png' '*.jpg' '*.jpeg' '*.so' '*.db' '*.plist' '*.ttf' '*.otf' '*.woff' '*.woff2' '*.dat' '*.sqlite' '*.sqlite3' '*.sqlite-wal' '*.sqlite-shm' '*.db-wal' '*.db-shm' '*.ico' '*.icns' '.DS_Store' '.localize'
         set -l FZF_FD_EXCLUDES "-E='"$FZF_EXCLUDED_DIRS"'"
         set -gx FZF_FD_EXCLUDES $FZF_FD_EXCLUDES "-E='"$FZF_EXCLUDED_FILES"'"
-        set -l FZF_FIND_EXCLUDES "-not \( -ipath '*"$FZF_EXCLUDED_DIRS"/*' -prune \)"
+        set -l FZF_FIND_EXCLUDES "-not \( -ipath '*"$FZF_EXCLUDED_DIRS"/*' -prune \)" # this directory exclude pattern is needed when searching for files
+        set -l FZF_FIND_EXCLUDES $FZF_FIND_EXCLUDES "-not \( -ipath '*/"$FZF_EXCLUDED_DIRS"' -prune \)" # and this directory exclude pattern is needed when searching for folders
         set -gx FZF_FIND_EXCLUDES $FZF_FIND_EXCLUDES "-not -iname '"$FZF_EXCLUDED_FILES"'"
 
         if type -q $__FD_CMD
@@ -103,7 +104,7 @@ function fzf_commands
             if type -q $__FD_CMD
                 set FZF_ALT_C_COMMAND "$__FD_CMD -H -t d $FZF_FD_EXCLUDES 2>/dev/null"
             else
-                set FZF_ALT_C_COMMAND "find * -type d $FZF_FIND_EXCLUDES 2>/dev/null"
+                set FZF_ALT_C_COMMAND "find . -mindepth 1 -type d $FZF_FIND_EXCLUDES 2>/dev/null"
             end
         end
 
