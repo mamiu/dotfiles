@@ -218,13 +218,13 @@ fi
 
 # Install vim plugins
 if [ ! -d "$TARGET_USER_HOME/.vim/bundle" ]; then
-    sudo -Hu $TARGET_USER vim </dev/tty
+    sudo -Hu $TARGET_USER vim +PluginInstall +qall &>/dev/null
 fi
 
 # Install tmux plugin manager and tmux plugins
 if [ ! -d "$TARGET_USER_HOME/.tmux/plugins/tpm" ]; then
     sudo -Hu $TARGET_USER git clone https://github.com/tmux-plugins/tpm $TARGET_USER_HOME/.tmux/plugins/tpm
-    sudo -Hu $TARGET_USER tmux new-session "$TARGET_USER_HOME/.tmux/plugins/tpm/tpm && $TARGET_USER_HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+    sudo -Hu $TARGET_USER tmux new-session -s "$TARGET_USER" -d "$TARGET_USER_HOME/.tmux/plugins/tpm/tpm && $TARGET_USER_HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
 fi
 
 # Set most important defaults for developers

@@ -213,8 +213,7 @@ setup_dotfiles() {
     # Install fisher - a package manager for the fish shell
     if [ ! -f "$HOME/.config/fish/functions/fisher.fish" ]; then
         set -x
-        curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
-        fish -c fisher
+        fish -c "curl -sL https://git.io/fisher | source && fisher update"
         { set +x; } 2>/dev/null
     fi
 
