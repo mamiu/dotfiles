@@ -143,24 +143,24 @@ sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash o
 # recommended (cli tools)
 sudo -Hu $TARGET_USER brew install git fish tmux vim ncdu htop kubernetes-cli fzf bat fd ripgrep jq reattach-to-user-namespace
 # optional
-# brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
+# sudo -Hu $TARGET_USER brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
 # macOS GUI apps
-brew cask install iterm2
+sudo -Hu $TARGET_USER brew cask install iterm2
 
 # Create a folder with symbolic links to all the gnu binaries
 gnubin_dir="/usr/local/gnubin"
 if [ ! -d "$gnubin_dir" ]; then
     mkdir /usr/local/gnubin
     chown -R $TARGET_USER:admin "$gnubin_dir/"
-
-    for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
-        sudo -Hu $TARGET_USER ln -s "$gnuutil" "$gnubin_dir/"
-    done
-
-    for pybin in /usr/local/opt/python/libexec/bin/*; do
-        sudo -Hu $TARGET_USER ln -s "$pybin" "$gnubin_dir/"
-    done
 fi
+
+for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
+    sudo -Hu $TARGET_USER ln -s "$gnuutil" "$gnubin_dir/" 2>/dev/null
+done
+
+for pybin in /usr/local/opt/python/libexec/bin/*; do
+    sudo -Hu $TARGET_USER ln -s "$pybin" "$gnubin_dir/" 2>/dev/null
+done
 
 # Add /usr/local/gnubin as first line to /etc/paths
 if ! grep -Fxq "$gnubin_dir" /etc/paths; then
@@ -213,8 +213,7 @@ sudo -Hu $TARGET_USER chmod 644 $TARGET_USER_HOME/.ssh/*.pub
 
 # Install fisher - a package manager for the fish shell
 if [ ! -f "$TARGET_USER_HOME/.config/fish/functions/fisher.fish" ]; then
-    sudo -Hu $TARGET_USER curl https://git.io/fisher --create-dirs -sLo "$TARGET_USER_HOME/.config/fish/functions/fisher.fish"
-    sudo -Hu $TARGET_USER fish -c fisher update
+    sudo -Hu $TARGET_USER fish -c "curl -sL https://git.io/fisher | source && fisher update"
 fi
 
 # Install vim plugins

@@ -5,6 +5,10 @@ I manage my config files with [homeshick](https://github.com/andsens/homeshick),
 
 ## Installation
 
+> :warning: **If you want to setup a Mac:**
+>
+> Make sure that all macOS updates are installed (System Preferences -> Software Updates) before running the install script to prevent package version mismatch.
+
 Just run the following line in your terminal:
 
 ```bash
