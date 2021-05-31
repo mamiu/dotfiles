@@ -179,7 +179,7 @@ sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick
 sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 
 # Backup property list files in case they exist and copy the new files to the app preferences folder
-app_preferences_path="$TARGET_USER_HOME/.homesick/repos/dotfiles/install/setup-os/additional-resources/macos/app-preferences"
+app_preferences_path="$TARGET_USER_HOME/.homesick/repos/dotfiles/install/setup-os/resources/macos/app-preferences"
 for file in $app_preferences_path/*
 do
     plist_filename=$(basename "$file")

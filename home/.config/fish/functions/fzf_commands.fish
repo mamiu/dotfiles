@@ -77,7 +77,7 @@ function fzf_commands
             set -l FISH_MINOR (echo $version | cut -f2 -d.)
 
             if type -q $__BAT_CMD
-                and test $CTRL_R_ENABLE_COLORS = "true"
+                and test "$CTRL_R_ENABLE_COLORS" = "true"
                 builtin history -z |
                 awk -v ORS='⏎ ' '1' |
                 string replace -r '⏎ $' '' |

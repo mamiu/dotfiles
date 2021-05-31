@@ -50,11 +50,17 @@ function abbreviations
       abbr --add --global dcst 'docker compose start'
       abbr --add --global dcsp 'docker compose stop'
       abbr --add --global dcr 'docker compose restart'
-      abbr --add --global dca 'docker compose attach'
-      abbr --add --global dcrm 'docker compose rm'
+      abbr --add --global dce 'docker compose exec'
       abbr --add --global dcl 'docker compose logs'
       abbr --add --global dclf 'docker compose logs -f'
+      abbr --add --global dcrm 'docker compose rm'
       abbr --add --global k 'kubectl'
+      abbr --add --global kc 'kubectl create'
+      abbr --add --global kcn 'kubectl create namespace'
+      abbr --add --global kcd 'kubectl create deploy'
+      abbr --add --global kd 'kubectl delete'
+      abbr --add --global kdn 'kubectl delete namespace'
+      abbr --add --global kdd 'kubectl delete deploy'
       abbr --add --global ka 'kubectl apply -f'
       abbr --add --global kg 'kubectl get'
       abbr --add --global kga 'kubectl get all -A'
@@ -70,6 +76,6 @@ function abbreviations
       abbr --add --global knpn "kubectl-namespaced get pods -o name"
       abbr --add --global knl "kubectl-namespaced logs"
       abbr --add --global kne "kubectl-namespaced exec -it"
-      abbr --add --global kdn "kube-delete-ns"
+      abbr --add --global kdnf "kube-delete-ns"
   end
 end
