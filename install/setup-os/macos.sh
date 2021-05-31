@@ -127,11 +127,14 @@ esac
 
 TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
 
-echo Starting installation of the most basic macOS dependencies...
-
 # Install homebrew if it's not installed already
-if ! { sudo -Hu $TARGET_USER brew --help >/dev/null 2>&1; } >/dev/null; then
-    sudo -Hu $TARGET_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+if ! { sudo -Hu $TARGET_USER brew --help &>/dev/null; }; then
+    sudo -Hu $TARGET_USER /bin/bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    if [[ $? -gt 0 ]]; then
+        echo -e "\nHomebrew installation failed. Check the log or try again later." >&2
+        exit 1
+    fi
 fi
 
 # Install brew packages
@@ -235,7 +238,7 @@ defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -int 0
 spctl --master-disable
 
 # Download and install FiraCode font
-if ! ls /Library/Fonts/FiraCode-* >/dev/null 2>&1; then
+if ! ls /Library/Fonts/FiraCode-* &>/dev/null; then
     curl -L https://github.com/tonsky/FiraCode/releases/download/2/FiraCode_2.zip -o ./fira_code_2.zip
     unzip fira_code_2.zip -d ./fira_code_2
     chown root:wheel ./fira_code_2/otf/*

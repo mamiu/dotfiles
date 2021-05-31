@@ -29,7 +29,7 @@ configure_new_server()
 
     # Servers domain or IP address
     read -p "Hostname or IP address of the server: " hostname </dev/tty
-    while ! ping -c1 -W1 "$hostname" >/dev/null 2>&1
+    while ! ping -c1 -W1 "$hostname" &>/dev/null
     do
         read -p "Host is not reachable. Please enter a valid hostname or IP address: " hostname </dev/tty
     done
@@ -37,7 +37,7 @@ configure_new_server()
     # SSH port
     read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port </dev/tty
     [ -z "$port" ] && port="22"
-    while ! nc -z $hostname $port >/dev/null 2>&1
+    while ! nc -z $hostname $port &>/dev/null
     do
         read -p "Port is not open. Please enter a valid port: " port </dev/tty
     done
@@ -266,7 +266,7 @@ call_installation_script()
 
     if (( return_value == 0 )); then
         if [ "$REBOOT_AFTER_INSTALLATION" ]; then
-            if sudo -n true >/dev/null 2>&1; then
+            if sudo -n true &>/dev/null; then
                 echo "Reboot system in 30 seconds..."
                 nohup sudo bash -c 'sleep 30 && reboot' >/dev/null &
             else
@@ -367,18 +367,18 @@ setup_remote_host()
         params+=("--new-ssh-port=$new_ssh_port")
     fi
 
-    ssh-keygen -R "$hostname" >/dev/null 2>&1
+    ssh-keygen -R "$hostname" &>/dev/null
     if (( port != 22 )); then
-        ssh-keygen -R "[${hostname}]:$port" >/dev/null 2>&1
+        ssh-keygen -R "[${hostname}]:$port" &>/dev/null
     fi
 
     echo "Adding host verification keys to ~/.ssh/known_hosts ..."
     ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
     for ip in $(dig @8.8.8.8 $hostname +short)
     do
-        ssh-keygen -R "$ip" >/dev/null 2>&1
+        ssh-keygen -R "$ip" &>/dev/null
         if (( port != 22 )); then
-            ssh-keygen -R "[${ip}]:$port" >/dev/null 2>&1
+            ssh-keygen -R "[${ip}]:$port" &>/dev/null
         fi
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
@@ -389,21 +389,21 @@ setup_remote_host()
     if [ "$change_ssh_port" == "true" ]; then
         echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."
 
-        ssh-keygen -R "$hostname" >/dev/null 2>&1
+        ssh-keygen -R "$hostname" &>/dev/null
         if (( port != 22 )); then
-            ssh-keygen -R "[${hostname}]:$port" >/dev/null 2>&1
+            ssh-keygen -R "[${hostname}]:$port" &>/dev/null
         fi
-        ssh-keygen -R "[${hostname}]:$new_ssh_port" >/dev/null 2>&1
+        ssh-keygen -R "[${hostname}]:$new_ssh_port" &>/dev/null
 
         ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
 
         for ip in $(dig @8.8.8.8 $hostname +short)
         do
-            ssh-keygen -R "$ip" >/dev/null 2>&1
+            ssh-keygen -R "$ip" &>/dev/null
             if (( port != 22 )); then
-                ssh-keygen -R "[${ip}]:$port" >/dev/null 2>&1
+                ssh-keygen -R "[${ip}]:$port" &>/dev/null
             fi
-            ssh-keygen -R "[${ip}]:$new_ssh_port" >/dev/null 2>&1
+            ssh-keygen -R "[${ip}]:$new_ssh_port" &>/dev/null
 
             ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
             ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null

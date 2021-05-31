@@ -22,12 +22,12 @@ function __loading_spinner
 end
 
 function kube-delete-ns
-    kubectl proxy >/dev/null 2>&1 &
+    kubectl proxy &>/dev/null &
     jobs -lp | read KUBE_PROXY_PID
     for ns in $argv
         echo -en " Checking namespace "(set_color -o)"\033[1;34m$ns\033[1;0m"(set_color normal)
-        kubectl get ns $ns >/dev/null 2>&1
-        # kubectl get ns $ns >/dev/null 2>&1 &
+        kubectl get ns $ns &>/dev/null
+        # kubectl get ns $ns &>/dev/null &
         # jobs -lp | read KUBE_CHECK_NS_PID
         # __loading_spinner $KUBE_CHECK_NS_PID "Checking namespace \033[1;34m$ns\033[1;0m"
         # wait $KUBE_CHECK_NS_PID
@@ -51,7 +51,7 @@ function kube-delete-ns
         echo -e "\033[2K\033[10000D \033[0;32m✔\033[0m Deleted \033[1;34m$ns\033[1;0m"
     end
     if test -e kube-del-ns-temp.json
-        rm kube-del-ns-temp.json >/dev/null 2>&1
+        rm kube-del-ns-temp.json &>/dev/null
     end
     kill -TERM $KUBE_PROXY_PID
 end
