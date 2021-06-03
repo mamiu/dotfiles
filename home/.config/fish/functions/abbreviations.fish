@@ -7,12 +7,16 @@ function abbreviations
       abbr --add --global e echo
       abbr --add --global en 'echo -n'
       abbr --add --global ee 'echo -e'
+      abbr --add --global b bash
       abbr --add --global m mosh
       abbr --add --global v vim
       abbr --add --global s sudo
       abbr --add --global c curl
+      abbr --add --global w 'watch -n 1'
+      abbr --add --global n 'netstat -tlpn'
       abbr --add --global g git
       abbr --add --global gc 'git clone'
+      abbr --add --global ga 'git add -A'
       abbr --add --global gco 'git commit -am'
       abbr --add --global gp 'git push'
       abbr --add --global gpf 'git push -f'
@@ -22,8 +26,6 @@ function abbreviations
       abbr --add --global grro 'git remote remove origin'
       abbr --add --global gs 'git status'
       abbr --add --global gd 'git diff'
-      abbr --add --global w 'watch -n 1'
-      abbr --add --global n 'netstat -tlpn'
       abbr --add --global d 'docker'
       abbr --add --global dp 'docker ps'
       abbr --add --global dpa 'docker ps -a'
@@ -77,5 +79,30 @@ function abbreviations
       abbr --add --global knl "kubectl-namespaced logs"
       abbr --add --global kne "kubectl-namespaced exec -it"
       abbr --add --global kdnf "kube-delete-ns"
+      abbr --add --global h "helm"
+      abbr --add --global hga "helm get all"
+      abbr --add --global hgh "helm get hooks"
+      abbr --add --global hgm "helm get manifest"
+      abbr --add --global hgn "helm get notes"
+      abbr --add --global hgv "helm get values"
+      abbr --add --global hh "helm history --namespace"
+      abbr --add --global hi "helm install --namespace"
+      abbr --add --global hl "helm list --namespace"
+      abbr --add --global hp "helm pull"
+      abbr --add --global hra "helm repo add"
+      abbr --add --global hrl "helm repo list"
+      abbr --add --global hrr "helm repo remove"
+      abbr --add --global hru "helm repo update"
+      abbr --add --global hrb "helm rollback"
+      abbr --add --global hseh "helm search hub"
+      abbr --add --global hser "helm search repo"
+      abbr --add --global hsha "helm show all"
+      abbr --add --global hshc "helm show chart"
+      abbr --add --global hshr "helm show readme"
+      abbr --add --global hshv "helm show values"
+      abbr --add --global hs "helm status"
+      abbr --add --global ht "helm template"
+      abbr --add --global hu "helm uninstall"
+      abbr --add --global hug "helm upgrade"
   end
 end
