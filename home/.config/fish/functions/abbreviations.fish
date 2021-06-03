@@ -1,20 +1,10 @@
 
 function abbreviations
   if status --is-interactive
-      if type -q bat
-          abbr --add --global b bat
-      end
-      abbr --add --global e echo
       abbr --add --global en 'echo -n'
       abbr --add --global ee 'echo -e'
-      abbr --add --global b bash
-      abbr --add --global m mosh
-      abbr --add --global v vim
-      abbr --add --global s sudo
-      abbr --add --global c curl
       abbr --add --global w 'watch -n 1'
       abbr --add --global n 'netstat -tlpn'
-      abbr --add --global g git
       abbr --add --global gc 'git clone'
       abbr --add --global ga 'git add -A'
       abbr --add --global gco 'git commit -am'
@@ -56,15 +46,15 @@ function abbreviations
       abbr --add --global dcl 'docker compose logs'
       abbr --add --global dclf 'docker compose logs -f'
       abbr --add --global dcrm 'docker compose rm'
-      abbr --add --global k 'kubectl'
-      abbr --add --global kc 'kubectl create'
+      abbr --add --global k 'kubectl -n'
+      abbr --add --global kc 'kubectl create -n'
       abbr --add --global kcn 'kubectl create namespace'
-      abbr --add --global kcd 'kubectl create deploy'
-      abbr --add --global kd 'kubectl delete'
+      abbr --add --global kcd 'kubectl create deploy -n'
+      abbr --add --global kd 'kubectl delete -n'
       abbr --add --global kdn 'kubectl delete namespace'
-      abbr --add --global kdd 'kubectl delete deploy'
+      abbr --add --global kdd 'kubectl delete deploy -n'
       abbr --add --global ka 'kubectl apply -f'
-      abbr --add --global kg 'kubectl get'
+      abbr --add --global kg 'kubectl get -n'
       abbr --add --global kga 'kubectl get all -A'
       abbr --add --global ks 'kubectl -n kube-system'
       abbr --add --global ksa 'kubectl -n kube-system get all'
@@ -79,7 +69,6 @@ function abbreviations
       abbr --add --global knl "kubectl-namespaced logs"
       abbr --add --global kne "kubectl-namespaced exec -it"
       abbr --add --global kdnf "kube-delete-ns"
-      abbr --add --global h "helm"
       abbr --add --global hga "helm get all"
       abbr --add --global hgh "helm get hooks"
       abbr --add --global hgm "helm get manifest"
