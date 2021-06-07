@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -d|--gnubin-dir)
+            GNUBIN_DIR="$2"
+            shift 2
+            if [ $? -gt 0 ]; then
+                echo "You must pass the gnubin directory as second argument to -d or --gnubin-dir!" >&2
+                exit 1
+            fi
+        ;;
+
+        --gnubin-dir=*)
+            GNUBIN_DIR="${1#*=}"
+            shift
+        ;;
+
+        *)
+            if [ "${1// }" ]; then
+                echo "Unknown option: $1" >&2
+                exit 1
+            fi
+            shift
+        ;;
+    esac
+done
+
+if [[ -z "$GNUBIN_DIR" ]]; then
+  GNUBIN_DIR="/usr/local/gnubin"
+fi
+
+# Remove trailing slashes
+GNUBIN_DIR="${GNUBIN_DIR%%+(/)}"
+
+for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
+  ln -fs "$gnuutil" "$GNUBIN_DIR/"
+done
+
+for pybin in /usr/local/opt/python*/libexec/bin/*; do
+  ln -fs "$pybin" "$GNUBIN_DIR/"
+done

@@ -155,11 +155,11 @@ if [ ! -d "$gnubin_dir" ]; then
 fi
 
 for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
-    sudo -Hu $TARGET_USER ln -s "$gnuutil" "$gnubin_dir/" 2>/dev/null
+  sudo -Hu $TARGET_USER ln -fs "$gnuutil" "$gnubin_dir/"
 done
 
-for pybin in /usr/local/opt/python/libexec/bin/*; do
-    sudo -Hu $TARGET_USER ln -s "$pybin" "$gnubin_dir/" 2>/dev/null
+for pybin in /usr/local/opt/python*/libexec/bin/*; do
+  sudo -Hu $TARGET_USER ln -fs "$pybin" "$gnubin_dir/"
 done
 
 # Add /usr/local/gnubin as first line to /etc/paths

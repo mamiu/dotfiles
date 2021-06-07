@@ -161,7 +161,7 @@ install_basic_packages() {
     # Just to make sure that the very basics are installed
     # net-tools        => netstat (network statistics)
     # at               => run command at given time in the future
-    apt-get install -y net-tools at
+    apt-get install -y net-tools at gawk
 
     # Install most used packages
     apt-get install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
