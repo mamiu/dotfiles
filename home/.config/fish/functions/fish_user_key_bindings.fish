@@ -54,7 +54,7 @@ function fish_user_key_bindings
     bind \cf __append_fzf_and_execute
     bind \ck history-search-backward
     bind \eu upcase-word backward-word upcase-word
-    bind \cc kill-whole-line
+    bind \cc 'commandline -r ""'
     bind \ec __comment_and_execute_commandline
     bind \cj __change_directory
     bind \cr __browse_history

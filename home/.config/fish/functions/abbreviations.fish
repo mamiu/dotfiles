@@ -66,7 +66,7 @@ function abbreviations
       abbr --add --global knp "kubectl-namespaced get pods"
       abbr --add --global knan "kubectl-namespaced get all -o name"
       abbr --add --global knpn "kubectl-namespaced get pods -o name"
-      abbr --add --global knl "kubectl-namespaced logs"
+      abbr --add --global knl "kubectl-namespaced logs -f"
       abbr --add --global kne "kubectl-namespaced exec -it"
       abbr --add --global kdnf "kube-delete-ns"
       abbr --add --global hga "helm get all"
