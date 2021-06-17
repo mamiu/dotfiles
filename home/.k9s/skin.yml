@@ -1,0 +1,128 @@
+# bobthefish base16 color scheme
+foreground: &foreground "#ffffff"
+darkForeground: &darkForeground "#303030"
+background: &background "default"
+backgroundOpaque: &backgroundOpaque "#303030"
+blue: &blue "#7cafc2"
+green: &green "#a1b56c"
+orange: &orange "#dc9656"
+lightBlue: &lightBlue "#c3eff7"
+lightGreen: &lightGreen "#afd787"
+darkBlue: &darkBlue "#4E8296"
+darkGreen: &darkGreen "#7C9465"
+purple: &purple "#ba8baf"
+
+k9s:
+  # General K9s styles
+  body:
+    fgColor: *foreground
+    bgColor: *background
+    logoColor: *blue
+  # ClusterInfoView styles.
+  info:
+    fgColor: *lightGreen
+    sectionColor: *lightBlue
+  # Dialog styles.
+  dialog:
+    fgColor: *foreground
+    bgColor: *background
+    buttonFgColor: *foreground
+    buttonBgColor: *green
+    buttonFocusFgColor: *foreground
+    buttonFocusBgColor: *darkBlue
+    labelFgColor: *orange
+    fieldFgColor: *lightGreen
+  frame:
+    # Borders styles.
+    border:
+      fgColor: *lightGreen
+      focusColor: *darkBlue
+    menu:
+      fgColor: *lightBlue
+      keyColor: *green
+      # Used for favorite namespaces
+      numKeyColor: *green
+    # CrumbView attributes for history navigation.
+    crumbs:
+      fgColor: *darkForeground
+      bgColor: *darkGreen
+      activeColor: *lightGreen
+    # Resource status and update styles
+    status:
+      newColor: *lightGreen
+      modifyColor: *purple
+      addColor: *green
+      pendingColor: *orange
+      errorColor: *blue
+      highlightcolor: *lightGreen
+      killColor: *green
+      completedColor: *darkBlue
+    # Border title styles.
+    title:
+      fgColor: *foreground
+      bgColor: *background
+      highlightColor: *lightGreen
+      counterColor: *lightBlue
+      filterColor: *orange
+  views:
+    # Charts skins...
+    charts:
+      bgColor: *background
+      dialBgColor: *background
+      chartBgColor: *backgroundOpaque
+      defaultDialColors:
+        - *lightGreen
+        - *blue
+      defaultChartColors:
+        - *lightGreen
+        - *blue
+      resourceColors:
+        batch/v1/jobs:
+          - *lightGreen
+          - *blue
+        v1/persistentvolumes:
+          - *lightGreen
+          - *blue
+        cpu:
+          - *lightGreen
+          - *blue
+        mem:
+          - *lightGreen
+          - *blue
+        v1/events:
+          - *lightGreen
+          - *blue
+        v1/pods:
+          - *lightGreen
+          - *blue
+    # TableView attributes.
+    table:
+      fgColor: *foreground
+      bgColor: *background
+      cursorFgColor: *darkForeground
+      cursorBgColor: *backgroundOpaque
+      markColor: *blue
+      # Header row styles.
+      header:
+        fgColor: *foreground
+        bgColor: *backgroundOpaque
+        sorterColor: *lightGreen
+    # Xray view attributes.
+    xray:
+      fgColor: *foreground
+      bgColor: *background
+      cursorColor: *lightGreen
+      cursorTextColor: *foreground
+      graphicColor: *lightGreen
+    # YAML info styles.
+    yaml:
+      keyColor: *orange
+      colonColor: *orange
+      valueColor: *foreground
+    # Logs styles.
+    logs:
+      fgColor: *foreground
+      bgColor: *background
+      indicator:
+        fgColor: *foreground
+        bgColor: *darkBlue
