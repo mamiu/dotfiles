@@ -46,15 +46,23 @@ function __browse_history
     end
 end
 
+function __abbr_tips_history_backward
+    set -g __abbr_tips_used 1
+    commandline -f history-search-backward
+end
+
 # user defined key bindings
 function fish_user_key_bindings
     fzf_commands
     bind \e\r accept-autosuggestion execute
     bind \el 'commandline -a la; commandline -f execute'
     bind \cf __append_fzf_and_execute
-    bind \ck history-search-backward
+    bind \ck __abbr_tips_history_backward
+    bind \e\[A __abbr_tips_history_backward # arrow up key
     bind \eu upcase-word backward-word upcase-word
     bind \cc 'commandline -r ""'
+    bind \ca beginning-of-buffer
+    bind \ce end-of-buffer
     bind \ec __comment_and_execute_commandline
     bind \cj __change_directory
     bind \cr __browse_history
