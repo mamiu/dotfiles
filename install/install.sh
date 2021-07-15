@@ -252,7 +252,7 @@ call_installation_script()
     fi
 
 
-    (( EUID != 0 )) && run_as_root="sudo"
+    (( EUID != 0 )) && run_as_root="sudo -s"
     if [ -f "$install_script" ]; then
         $run_as_root "$install_script" "${params[@]}" 2>&1 | $run_as_root tee $INSTALLATION_LOG_FILE
         return_value="$?"
