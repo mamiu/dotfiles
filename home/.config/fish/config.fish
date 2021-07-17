@@ -78,14 +78,14 @@ alias mosh="env TMUX_AUTOSTART=true mosh"
 #  - current shell is a login shell AND
 #  - current shell is interactive AND
 #  - either the "$TMUX_AUTOSTART" environment variable or the "$USE_TMUX_BY_DEFAULT" variable is set to true
-if status is-login
+if type -q tmux
+    and status is-login
     and status is-interactive
     # the following condition check is a workaround for this bug (and should be removed once it's solved): https://github.com/microsoft/vscode-remote-release/issues/4813#issuecomment-818780854
     and not ps -o command $fish_pid | tail -1 | awk '{print $2}' | string match "*c*" >/dev/null
     and test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
     # make sure that current shell is not inside tmux
-    set -l TMUX_SESSIONS (tmux ls 2>&1 | cut -c-17)
-    if test "$TMUX_SESSIONS" = "no server running" -o -z "$TMUX"
+    if not tmux has-session 2>/dev/null; or test -z "$TMUX"
         # not inside of tmux session therefore create new one
         if test -n "$SSH_CLIENT" -o -n "$SSH_CONNECTION" -o -n "$SSH_TTY" -o "$ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS" = "false"
             # only try to attach to existing tmux session if in ssh session or if specified with config var
