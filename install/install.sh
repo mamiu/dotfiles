@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # MAMIU/DOTFILES SETUP SCRIPT
 
 # Log file path of the setup scripts
@@ -67,24 +67,27 @@ configure_new_server()
         change_ssh_port=false
     fi
 
-    # admin username
-    read -p "Admin user name (doesn't have to be an existing one) [default=${bold_start}root${bold_end}]: " username </dev/tty
-    [ -z "$username" ] && username="root"
+    # installation user
+    read -p "Which user do you want to use for the installation (must exist and have root privileges) [default=${bold_start}root${bold_end}]: " install_user </dev/tty
+    [ -z "$install_user" ] && install_user="root"
 
-    if [ "$username" != "root" ]; then
-        # username is a user that already exists
-        read -p "Does the user ${bold_start}${username}${bold_end} already exist? [y/${bold_start}N${bold_end}] " user_exists </dev/tty
-        [ -z "$user_exists" ] && user_exists="n"
-        case "${user_exists:0:1}" in
-            n|N )
-                user_exists=false
-            ;;
-            * )
-                user_exists=true
-            ;;
-        esac
+    # setup admin user
+    read -p "Do you want to setup a new admin user? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
+    [ -z "$setup_admin_user" ] && setup_admin_user="y"
+    case "${setup_admin_user:0:1}" in
+        y|Y )
+            setup_admin_user=true
+        ;;
+        * )
+            setup_admin_user=false
+        ;;
+    esac
+
+    if [ "$setup_admin_user" = "true" ]; then
+        read -p "Admin user name [default=${bold_start}${USER}${bold_end}]: " admin_user </dev/tty
+        [ -z "$admin_user" ] && admin_user="$USER"
     else
-        user_exists=true
+        admin_user=""
     fi
 
     # add this config to ssh config
@@ -132,7 +135,7 @@ configure_new_server()
         ;;
     esac
 
-    if [ "$add_ssh_config" == true ]; then
+    if [ "$add_ssh_config" == "true" ]; then
         # add ssh configuration to ssh config file
 
         ssh_config_file="$HOME/.ssh/config"
@@ -144,14 +147,14 @@ configure_new_server()
         if [ -w "$ssh_config_file" ] ; then
             echo "" >> $ssh_config_file
             echo "Host $nickname" >> $ssh_config_file
-            echo "    User $username" >> $ssh_config_file
+            echo "    User $admin_user" >> $ssh_config_file
             echo "    HostName $hostname" >> $ssh_config_file
             if [ "$change_ssh_port" == "true" ]; then
                 echo "    Port $new_ssh_port" >> $ssh_config_file
             else
                 echo "    Port $port" >> $ssh_config_file
             fi
-            if [ "$tmux_autostart" == true ]; then
+            if [ "$tmux_autostart" == "true" ]; then
                 echo "    SendEnv TMUX_AUTOSTART" >> $ssh_config_file
             fi
         else
@@ -171,7 +174,7 @@ configure_new_server()
         ;;
     esac
 
-    setup_remote_host $hostname $port $username $user_exists $ssh_copy_id $reboot_after_installation $change_ssh_port $new_ssh_port
+    setup_remote_host $hostname $port $install_user $setup_admin_user $admin_user $ssh_copy_id $reboot_after_installation $change_ssh_port $new_ssh_port
 }
 
 choose_remote_host()
@@ -334,30 +337,20 @@ setup_remote_host()
 
     hostname=$1
     port=$2
-    username=$3
-    user_exists=$4
-    ssh_copy_id=$5
-    reboot_after_installation=$6
-    change_ssh_port=$7
-    new_ssh_port=$8
+    install_user=$3
+    setup_admin_user=$4
+    admin_user=$5
+    ssh_copy_id=$6
+    reboot_after_installation=$7
+    change_ssh_port=$8
+    new_ssh_port=$9
 
-    echo "username: $username"
+    echo "username: $install_user"
     echo "hostname: $hostname"
 
-    if [ "$user_exists" == "false" ]; then
-        user="root"
-        echo ""
-        echo "# YOU HAVE SPECIFIED \"${bold_start}${username}${bold_end}\" AS ADMIN USER."
-        echo "# BUT SINCE THIS USER DOESN'T EXIST YET, YOU HAVE"
-        echo "# TO LOGIN WITH THE \"${bold_start}root${bold_end}\" USER FOR THE INSTALLATION!"
-        echo ""
-    else
-        user=$username
-    fi
-
     params=("curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting")
-    if [ "$username" != "root" ]; then
-        params+=("--admin-user=$username")
+    if [ "$setup_admin_user" == "true" ]; then
+        params+=("--admin-user=$admin_user")
     fi
     if [ "$reboot_after_installation" == "true" ]; then
         params+=("--reboot")
@@ -386,7 +379,7 @@ setup_remote_host()
         ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
     done
 
-    ssh -o StrictHostKeyChecking=no -p $port $user@$hostname -t "${params[@]}"
+    ssh -o StrictHostKeyChecking=no -p $port $install_user@$hostname -t "${params[@]}"
 
     if [ "$change_ssh_port" == "true" ]; then
         echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."

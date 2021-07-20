@@ -129,7 +129,7 @@ TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
 
 # Install homebrew if it's not installed already
 if ! { sudo -Hu $TARGET_USER brew --help &>/dev/null; }; then
-    sudo -Hu $TARGET_USER /bin/bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    sudo -Hu $TARGET_USER /usr/bin/env bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
     if [[ $? -gt 0 ]]; then
         echo -e "\nHomebrew installation failed. Check the log or try again later." >&2

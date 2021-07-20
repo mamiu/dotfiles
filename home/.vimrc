@@ -3,7 +3,7 @@
 " Avoid modify this section, unless you are very sure of what you are doing
 
 " set bash as vim shell
-set shell=/bin/bash
+set shell=/usr/local/bin/fish
 
 " no vi-compatible
 set nocompatible

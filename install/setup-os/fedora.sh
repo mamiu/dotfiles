@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # helper variables to make text bold
 bold_start=$(tput bold)
@@ -271,7 +271,7 @@ setup_dotfiles
 chsh -s $(which fish)
 
 if [ "$ADMIN_USER" ]; then
-    sudo -u $ADMIN_USER /bin/bash -c "$(declare -f setup_dotfiles); ADMIN_USER='$ADMIN_USER'; PUBLIC_SSH_KEY='$PUBLIC_SSH_KEY'; setup_dotfiles"
+    sudo -u $ADMIN_USER /usr/bin/env bash -c "$(declare -f setup_dotfiles); ADMIN_USER='$ADMIN_USER'; PUBLIC_SSH_KEY='$PUBLIC_SSH_KEY'; setup_dotfiles"
 
     # Make fish the default shell
     set -x
