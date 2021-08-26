@@ -140,6 +140,8 @@ function Paste_from_clipboard()
     set paste
     normal! "+p
     startinsert
+    stopinsert
+    set nopaste
 endfunction
 
 autocmd InsertLeave * set nopaste
