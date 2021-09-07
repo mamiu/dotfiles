@@ -3,6 +3,9 @@ alias:
   de: apps/v1/deployments
   dep: apps/v1/deployments
 
+  # Use de and dep as an alias for Deployments
+  ss: apps/v1/statefulsets
+
   # Use ir as an alias for CRD IngressRoutes
   ir: traefik.containo.us/v1alpha1/ingressroutes
 

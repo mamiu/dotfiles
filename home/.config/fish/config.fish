@@ -3,6 +3,7 @@ set -x LC_ALL en_US.UTF-8
 set -x LANG en_US.UTF-8
 set -x TERM xterm-256color
 set -x EDITOR vim
+set -x GPG_TTY (tty)
 set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_DATA_HOME $HOME/.local/share
