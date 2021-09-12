@@ -7,18 +7,20 @@ function __print_current_namespace
 end
 
 function __select_a_pod
-    set -g KUBE_SELECTED_POD (kubectl -n "$KUBE_CURRENT_NS" get pods -o name | sed -e "s/^[^/]*\///g" | fzf)
+    set -l KUBE_SELECTED_POD (kubectl -n "$KUBE_CURRENT_NS" get pods -o name | sed -e "s/^[^/]*\///g" | fzf)
 
     if test -z "$KUBE_SELECTED_POD"
         echo "Couldn't find any pod for namespace \"$KUBE_CURRENT_NS\""
-        return
+        exit 1
     end
+
+    echo "$KUBE_SELECTED_POD"
 end
 
 function kubectl-namespaced
     if not type -q fzf
         echo "fzf must be installed in order to use kubectl-namespaced"
-        return 1
+        exit 1
     end
 
     # You can set a namespace by passing the argument sn (set namespace) to this function
@@ -36,13 +38,13 @@ function kubectl-namespaced
     end
 
     if test "$argv[1]" = "exec"
-        __select_a_pod
+        set -l KUBE_SELECTED_POD (__select_a_pod)
         commandline -b "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" -- bash"
         return
     end
 
     if test "$argv[1]" = "logs"
-        __select_a_pod
+        set -l KUBE_SELECTED_POD (__select_a_pod)
         if type -q $__BAT_CMD
             set logs_pager "$__BAT_CMD -l log --style numbers"
         else
