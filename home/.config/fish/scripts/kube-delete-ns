@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 
 function __hide_cursor
     # hide cursor
@@ -79,3 +80,5 @@ end
 #     sleep 1
 #     echo done
 # end
+
+kube-delete-ns $argv

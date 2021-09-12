@@ -1,3 +1,5 @@
+#!/usr/bin/env fish
+
 function __print_current_namespace
     set_color $fish_color_autosuggestion
     echo "Current namespace: $KUBE_CURRENT_NS" >&2
@@ -54,3 +56,5 @@ function kubectl-namespaced
         kubectl -n "$KUBE_CURRENT_NS" $argv
     end
 end
+
+kubectl-namespaced $argv
