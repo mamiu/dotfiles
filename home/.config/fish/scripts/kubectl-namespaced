@@ -6,7 +6,7 @@ function __print_current_namespace
     set_color normal
 end
 
-function __select_a_pod
+function __select_pod
     set -l KUBE_SELECTED_POD (kubectl -n "$KUBE_CURRENT_NS" get pods -o name | sed -e "s/^[^/]*\///g" | fzf)
 
     if test -z "$KUBE_SELECTED_POD"
@@ -17,6 +17,35 @@ function __select_a_pod
     echo "$KUBE_SELECTED_POD"
 end
 
+function __select_file
+    set -l POD "$argv[1]"
+    set -l CURRENT_PATH "$argv[2]"
+    set -l PATH_SELECTION (kubectl --namespace="$KUBE_CURRENT_NS" exec -it "pod/$POD" -- sh -c "if [ -d \"$CURRENT_PATH\" ]; then ls -a1 \"$CURRENT_PATH\"; else if [ -f \"$CURRENT_PATH\" ]; then echo ITS_A_FILE; else echo NEITHER_FILE_NOR_FOLDER; fi; fi" 2>/dev/null | fzf -1 --no-multi | tr -d '\r')
+
+    if test "$PATH_SELECTION" = ""
+        # User cancelled the process with CTRL-C
+        exit 1
+    else if test "$PATH_SELECTION" = "NEITHER_FILE_NOR_FOLDER"
+        echo "The selection is neither a file nor a directory!" >/dev/stderr
+        exit 1
+    else if test "$PATH_SELECTION" = "ITS_A_FILE"
+        echo "$CURRENT_PATH"
+        return
+    else if test "$PATH_SELECTION" = ".."
+        set -l TRIMMED_CURRENT_PATH (string trim -c "/" "$CURRENT_PATH")
+        set PARENT_DIR_PATH (string replace -r "(.*)/(.*)" '$1' "/$TRIMMED_CURRENT_PATH")
+        set NEW_PATH "/"(string trim -c "/" "$PARENT_DIR_PATH")
+    else
+        if test "$CURRENT_PATH" = "/"
+            set NEW_PATH "/$PATH_SELECTION"
+        else
+            set NEW_PATH "$CURRENT_PATH/$PATH_SELECTION"
+        end
+    end
+
+    __select_file "$POD" "$NEW_PATH"
+end
+
 function kubectl-namespaced
     if not type -q fzf
         echo "fzf must be installed in order to use kubectl-namespaced"
@@ -25,7 +54,7 @@ function kubectl-namespaced
 
     # You can set a namespace by passing the argument sn (set namespace) to this function
     if test -z "$KUBE_CURRENT_NS" -o "$argv[1]" = "sn"
-        set -g KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
+        set -U KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
         if test $status -gt 0
             return
         end
@@ -38,19 +67,34 @@ function kubectl-namespaced
     end
 
     if test "$argv[1]" = "exec"
-        set -l KUBE_SELECTED_POD (__select_a_pod)
+        set -l KUBE_SELECTED_POD (__select_pod)
         commandline -b "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" -- bash"
         return
     end
 
     if test "$argv[1]" = "logs"
-        set -l KUBE_SELECTED_POD (__select_a_pod)
+        set -l KUBE_SELECTED_POD (__select_pod)
         if type -q $__BAT_CMD
             set logs_pager "$__BAT_CMD -l log --style numbers"
         else
             set logs_pager "less"
         end
         fish -c "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" | $logs_pager"
+        return
+    end
+
+    if test "$argv[1]" = "vim"
+        set -l KUBE_SELECTED_POD (__select_pod)
+        set -l FILE_PATH (__select_file "$KUBE_SELECTED_POD" "/")
+        set -l FILE_NAME (string replace -r ".*/" "" "$FILE_PATH")
+        set -l TMP_DIR "/tmp/kctl-nspd"
+        set -l TMP_FILE "$TMP_DIR/$FILE_NAME"
+
+        mkdir -p "$TMP_DIR"
+        kubectl --namespace="$KUBE_CURRENT_NS" exec "pod/$KUBE_SELECTED_POD" -- cat "$FILE_PATH" > "$TMP_FILE" 2>/dev/null
+        vim "$TMP_FILE"
+        cat "$TMP_FILE" | kubectl --namespace="$KUBE_CURRENT_NS" exec -i "pod/$KUBE_SELECTED_POD" -- sh -c "cat - >$FILE_PATH && echo done >/dev/null" 2>/dev/null
+        # rm "$TMP_FILE"
         return
     end
 
