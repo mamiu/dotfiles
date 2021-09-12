@@ -46,30 +46,28 @@ function abbreviations
       abbr --add --global dcl 'docker compose logs'
       abbr --add --global dclf 'docker compose logs -f'
       abbr --add --global dcrm 'docker compose rm'
-      abbr --add --global k 'kubectl -n'
-      abbr --add --global kc 'kubectl create -n'
-      abbr --add --global kcn 'kubectl create namespace'
-      abbr --add --global kcd 'kubectl create deploy -n'
-      abbr --add --global kd 'kubectl delete -n'
-      abbr --add --global kdn 'kubectl delete namespace'
-      abbr --add --global kdd 'kubectl delete deploy -n'
-      abbr --add --global ka 'kubectl apply -f'
-      abbr --add --global kg 'kubectl get -n'
-      abbr --add --global kga 'kubectl get all -A'
-      abbr --add --global ks 'kubectl -n kube-system'
-      abbr --add --global ksa 'kubectl -n kube-system get all'
-      abbr --add --global ksp 'kubectl -n kube-system get pods'
-      abbr --add --global ksl 'kubectl -n kube-system logs'
-      abbr --add --global kn "kubectl-namespaced"
-      abbr --add --global kns "kubectl-namespaced sn"
-      abbr --add --global kna "kubectl-namespaced get all"
-      abbr --add --global knp "kubectl-namespaced get pods"
-      abbr --add --global knan "kubectl-namespaced get all -o name"
-      abbr --add --global knpn "kubectl-namespaced get pods -o name"
-      abbr --add --global knl "kubectl-namespaced logs -f"
-      abbr --add --global kne "kubectl-namespaced exec -it"
-      abbr --add --global knv "kubectl-namespaced vim"
-      abbr --add --global knd "kubectl-namespaced debug"
+      abbr --add --global kc 'k create -n'
+      abbr --add --global kcn 'k create namespace'
+      abbr --add --global kcd 'k create deploy -n'
+      abbr --add --global kd 'k delete -n'
+      abbr --add --global kdn 'k delete namespace'
+      abbr --add --global kdd 'k delete deploy -n'
+      abbr --add --global ka 'k apply -f'
+      abbr --add --global kg 'k get -n'
+      abbr --add --global kga 'k get all -A'
+      abbr --add --global ks 'k -n kube-system'
+      abbr --add --global ksa 'k -n kube-system get all'
+      abbr --add --global ksp 'k -n kube-system get pods'
+      abbr --add --global ksl 'k -n kube-system logs'
+      abbr --add --global kns "kn sn"
+      abbr --add --global kna "kn get all"
+      abbr --add --global knp "kn get pods"
+      abbr --add --global knan "kn get all -o name"
+      abbr --add --global knpn "kn get pods -o name"
+      abbr --add --global knl "kn logs -f"
+      abbr --add --global kne "kn exec -it"
+      abbr --add --global knv "kn vim"
+      abbr --add --global knd "kn debug"
       abbr --add --global kdnf "kube-delete-ns"
       abbr --add --global hga "helm get all"
       abbr --add --global hgh "helm get hooks"
