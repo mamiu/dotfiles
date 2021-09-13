@@ -282,12 +282,12 @@ call_installation_script()
 
         echo
         echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
+        exit_program 0
     else
         echo
         echo "########## !!! ${bold_start}MAMIU/DOTFILES${bold_end} WAS NOT INSTALLED !!! ##########"
+        exit_program 1
     fi
-
-    exit_program
 }
 
 check_os()

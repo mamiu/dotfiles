@@ -49,9 +49,9 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-read -p "Change root password? [${bold_start}Y${bold_end}/n]: " change_root_password </dev/tty
-[ -z "$change_root_password" ] && change_root_password="y"
-case "${change_root_password:0:1}" in
+read -p "Change password of current user ($(whoami))? [${bold_start}Y${bold_end}/n]: " change_user_password </dev/tty
+[ -z "$change_user_password" ] && change_user_password="y"
+case "${change_user_password:0:1}" in
     y|Y )
         passwd </dev/tty
         while [ $? -ne 0 ]
@@ -95,7 +95,7 @@ create_admin_user() {
     fi
 
     adduser $new_admin_user
-    echo "Password for the new admin user"
+    echo "Password for the new admin user ($new_admin_user)"
     passwd $new_admin_user </dev/tty
     while [ $? -ne 0 ]
     do
@@ -267,7 +267,7 @@ install_basic_packages
 
 setup_dotfiles
 
-# Make fish the default shell for the root user
+# Make fish the default shell for the current user
 chsh -s $(which fish)
 
 if [ "$ADMIN_USER" ]; then
