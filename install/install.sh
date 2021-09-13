@@ -53,7 +53,7 @@ configure_new_server()
                 # New SSH port
                 read -p "New SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
                 [ -z "$new_ssh_port" ] && new_ssh_port=22222
-                while [[ ! "$new_ssh_port" =~ ^[1-9]+$ ]]
+                while [[ ! "$new_ssh_port" =~ ^[0-9]+$ ]]
                 do
                     read -p "Only numbers are allowed as an SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
                     [ -z "$new_ssh_port" ] && new_ssh_port=22222
@@ -191,7 +191,7 @@ choose_remote_host()
 
     select host_option in "${host_options[@]}"
     do
-        if [[ "$REPLY" =~ ^[1-9]+$ ]]; then
+        if [[ "$REPLY" =~ ^[0-9]+$ ]]; then
             if [ $REPLY -eq 1 ]; then
                 configure_new_server
                 break;
