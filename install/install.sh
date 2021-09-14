@@ -27,101 +27,134 @@ configure_new_server()
     echo
     echo "########## CONFIGURE NEW SERVER ##########"
 
+    hostname="$1"
+
+    old_port=$2
+    if (( old_port == 22 )); then
+        port=22
+    else
+        change_ssh_port=true
+        new_ssh_port=$old_port
+    fi
+
+    old_user="$3"
+    if [ "$old_user" = "root" ]; then
+        install_user="root"
+    else
+        setup_admin_user=true
+        admin_user="$old_user"
+    fi
+
+    add_ssh_config="$4"
+
     # Servers domain or IP address
-    read -p "Hostname or IP address of the server: " hostname </dev/tty
-    while ! ping -c1 -W1 "$hostname" &>/dev/null
-    do
-        read -p "Host is not reachable. Please enter a valid hostname or IP address: " hostname </dev/tty
-    done
+    if [ -z "$hostname" ]; then
+        read -p "Hostname or IP address of the server: " hostname </dev/tty
+        while ! ping -c1 -W1 "$hostname" &>/dev/null
+        do
+            read -p "Host is not reachable. Please enter a valid hostname or IP address: " hostname </dev/tty
+        done
+    fi
 
     # SSH port
-    read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port </dev/tty
-    [ -z "$port" ] && port="22"
+    if [ -z "$port" ]; then
+        read -p "SSH port of the server [default=${bold_start}22${bold_end}]: " port </dev/tty
+        [ -z "$port" ] && port="22"
+    fi
     while ! nc -z $hostname $port &>/dev/null
     do
         read -p "Port is not open. Please enter a valid port: " port </dev/tty
     done
 
-    # Change SSH port
-    if (( port == 22 )); then
-        read -p "Change SSH port to something else than 22? [${bold_start}Y${bold_end}/n] " change_ssh_port </dev/tty
-        [ -z "$change_ssh_port" ] && change_ssh_port="y"
-        case "${change_ssh_port:0:1}" in
-            y|Y )
-                change_ssh_port=true
 
-                # New SSH port
-                read -p "New SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
-                [ -z "$new_ssh_port" ] && new_ssh_port=22222
-                while [[ ! "$new_ssh_port" =~ ^[0-9]+$ ]]
-                do
-                    read -p "Only numbers are allowed as an SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
+    # Change SSH port
+    if [ -z "$change_ssh_port" ] || [ -z "$new_ssh_port" ]; then
+        if (( port == 22 )); then
+            read -p "Change SSH port to something else than 22? [${bold_start}Y${bold_end}/n] " change_ssh_port </dev/tty
+            [ -z "$change_ssh_port" ] && change_ssh_port="y"
+            case "${change_ssh_port:0:1}" in
+                y|Y )
+                    change_ssh_port=true
+
+                    # New SSH port
+                    read -p "New SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
                     [ -z "$new_ssh_port" ] && new_ssh_port=22222
-                done
-            ;;
-            * )
-                change_ssh_port=false
-            ;;
-        esac
-    else
-        change_ssh_port=false
+                    while [[ ! "$new_ssh_port" =~ ^[0-9]+$ ]]
+                    do
+                        read -p "Only numbers are allowed as an SSH port: [default=${bold_start}22222${bold_end}] " new_ssh_port </dev/tty
+                        [ -z "$new_ssh_port" ] && new_ssh_port=22222
+                    done
+                ;;
+                * )
+                    change_ssh_port=false
+                ;;
+            esac
+        else
+            change_ssh_port=false
+        fi
     fi
 
     # installation user
-    read -p "Which user do you want to use for the installation (must exist and have root privileges) [default=${bold_start}root${bold_end}]: " install_user </dev/tty
-    [ -z "$install_user" ] && install_user="root"
+    if [ -z "$install_user" ]; then
+        read -p "Which user do you want to use for the installation (must exist and have root privileges) [default=${bold_start}root${bold_end}]: " install_user </dev/tty
+        [ -z "$install_user" ] && install_user="root"
+    fi
 
     # setup admin user
-    read -p "Do you want to setup a new admin user? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
-    [ -z "$setup_admin_user" ] && setup_admin_user="y"
-    case "${setup_admin_user:0:1}" in
-        y|Y )
-            setup_admin_user=true
-        ;;
-        * )
-            setup_admin_user=false
-        ;;
-    esac
+    if [ -z "$setup_admin_user" ] || [ -z "$admin_user" ]; then
+        read -p "Do you want to setup a new admin user? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
+        [ -z "$setup_admin_user" ] && setup_admin_user="y"
+        case "${setup_admin_user:0:1}" in
+            y|Y )
+                setup_admin_user=true
+            ;;
+            * )
+                setup_admin_user=false
+            ;;
+        esac
 
-    if [ "$setup_admin_user" = "true" ]; then
-        read -p "Admin user name [default=${bold_start}${USER}${bold_end}]: " admin_user </dev/tty
-        [ -z "$admin_user" ] && admin_user="$USER"
-    else
-        admin_user=""
+        if [ "$setup_admin_user" = "true" ]; then
+            read -p "Admin user name [default=${bold_start}${USER}${bold_end}]: " admin_user </dev/tty
+            [ -z "$admin_user" ] && admin_user="$USER"
+        else
+            admin_user=""
+        fi
     fi
 
     # add this config to ssh config
-    read -p "Add this config to SSH config file? [${bold_start}Y${bold_end}/n] " add_ssh_config </dev/tty
-    [ -z "$add_ssh_config" ] && add_ssh_config="y"
-    case "${add_ssh_config:0:1}" in
-        y|Y )
-            add_ssh_config=true
+    if [ -z "$add_ssh_config" ]; then
+        read -p "Add this config to SSH config file? [${bold_start}Y${bold_end}/n] " add_ssh_config </dev/tty
+        [ -z "$add_ssh_config" ] && add_ssh_config="y"
+        case "${add_ssh_config:0:1}" in
+            y|Y )
+                add_ssh_config=true
 
-            # nickname for the server
-            read -p "Nickname for this SSH login: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
-            [ -z "$nickname" ] && nickname="$hostname"
-            while [[ " ${hosts[@]} " =~ " ${nickname} " ]]
-            do
-                read -p "Nickname does already exist. Please enter another nickname: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
+                # nickname for the server
+                read -p "Nickname for this SSH login: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
                 [ -z "$nickname" ] && nickname="$hostname"
-            done
+                while [[ " ${hosts[@]} " =~ " ${nickname} " ]]
+                do
+                    read -p "Nickname does already exist. Please enter another nickname: [default=${bold_start}${hostname}${bold_end}] " nickname </dev/tty
+                    [ -z "$nickname" ] && nickname="$hostname"
+                done
 
-            # autostart tmux at login
-            read -p "Start tmux by default on SSH login? [${bold_start}Y${bold_end}/n] " tmux_autostart </dev/tty
-            [ -z "$tmux_autostart" ] && tmux_autostart="y"
-            case "${tmux_autostart:0:1}" in
-                y|Y )
-                    tmux_autostart=true
-                ;;
-                * )
-                    tmux_autostart=false
-                ;;
-            esac
-        ;;
-        * )
-            add_ssh_config=false
-        ;;
-    esac
+                # autostart tmux at login
+                read -p "Start tmux by default on SSH login? [${bold_start}Y${bold_end}/n] " tmux_autostart </dev/tty
+                [ -z "$tmux_autostart" ] && tmux_autostart="y"
+                case "${tmux_autostart:0:1}" in
+                    y|Y )
+                        tmux_autostart=true
+                    ;;
+                    * )
+                        tmux_autostart=false
+                    ;;
+                esac
+            ;;
+            * )
+                add_ssh_config=false
+            ;;
+        esac
+    fi
 
     # login without entering a password in the future (adding id_rsa to known_hosts on server)
     read -p "Login without entering a password in the future? [${bold_start}Y${bold_end}/n] " ssh_copy_id </dev/tty
@@ -200,7 +233,21 @@ choose_remote_host()
                 port=(`ssh -G "$host_option" | grep "^port " | sed 's/port[ ]*//g'`)
                 username=(`ssh -G "$host_option" | grep "^user " | sed 's/user[ ]*//g'`)
 
-                setup_remote_host $hostname $port $username
+                # check if server got a clean install (https://www.pcmag.com/encyclopedia/term/clean-install)
+                echo
+                read -p "Was the server ($host_option) clean installed (no admin user, no different ssh port, etc.)? [${bold_start}Y${bold_end}/n] " is_clean_install </dev/tty
+                [ -z "$is_clean_install" ] && is_clean_install="y"
+                case "${is_clean_install:0:1}" in
+                    y|Y )
+                        configure_new_server $hostname $port $username "false"
+                    ;;
+                    n|N )
+                        setup_remote_host $hostname $port $username
+                    ;;
+                    * )
+                        echo "Unavailable option: \"$is_clean_install\"" >/dev/stderr
+                    ;;
+                esac
 
                 break;
             else
@@ -330,6 +377,60 @@ check_os()
     esac
 }
 
+remove_verification_keys()
+{
+    port=$1
+    hostname=$2
+
+    # echo "Removing old host verification keys for $hostname from ~/.ssh/known_hosts ..."
+    ssh-keygen -R "$hostname" &>/dev/null
+    if (( port != 22 )); then
+        ssh-keygen -R "[${hostname}]:$port" &>/dev/null
+    fi
+}
+
+add_verification_key()
+{
+    port=$1
+    hostname=$2
+
+    # echo "Adding host verification keys for $hostname to ~/.ssh/known_hosts ..."
+    ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
+}
+
+add_verification_keys_for_all_ips()
+{
+    port=$1
+    hostname=$2
+
+    # If hostname is an IP address
+    if [[ $hostname =~ ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$ ]]; then
+        return
+    fi
+
+    for ip in $(dig @8.8.8.8 $hostname +short)
+    do
+        # echo "Adding host verification keys for $ip to ~/.ssh/known_hosts ..."
+        ssh-keygen -R "$ip" &>/dev/null
+        if (( port != 22 )); then
+            ssh-keygen -R "[${ip}]:$port" &>/dev/null
+        fi
+        ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+    done
+}
+
+update_verification_keys()
+{
+    port=$1
+    hostname=$2
+
+    echo "Update host verification keys for $hostname ..."
+    remove_verification_keys "$port" "$hostname"
+    add_verification_key "$port" "$hostname"
+    add_verification_keys_for_all_ips "$port" "$hostname"
+}
+
 setup_remote_host()
 {
     echo
@@ -362,47 +463,13 @@ setup_remote_host()
         params+=("--new-ssh-port=$new_ssh_port")
     fi
 
-    ssh-keygen -R "$hostname" &>/dev/null
-    if (( port != 22 )); then
-        ssh-keygen -R "[${hostname}]:$port" &>/dev/null
-    fi
-
-    echo "Adding host verification keys to ~/.ssh/known_hosts ..."
-    ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
-    for ip in $(dig @8.8.8.8 $hostname +short)
-    do
-        ssh-keygen -R "$ip" &>/dev/null
-        if (( port != 22 )); then
-            ssh-keygen -R "[${ip}]:$port" &>/dev/null
-        fi
-        ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
-        ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
-    done
+    update_verification_keys "$port" "$hostname"
 
     ssh -o StrictHostKeyChecking=no -p $port $install_user@$hostname -t "${params[@]}"
 
     if [ "$change_ssh_port" == "true" ]; then
-        echo "Removing old host verification keys from ~/.ssh/known_hosts and adding new ones ..."
-
-        ssh-keygen -R "$hostname" &>/dev/null
-        if (( port != 22 )); then
-            ssh-keygen -R "[${hostname}]:$port" &>/dev/null
-        fi
-        ssh-keygen -R "[${hostname}]:$new_ssh_port" &>/dev/null
-
-        ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
-
-        for ip in $(dig @8.8.8.8 $hostname +short)
-        do
-            ssh-keygen -R "$ip" &>/dev/null
-            if (( port != 22 )); then
-                ssh-keygen -R "[${ip}]:$port" &>/dev/null
-            fi
-            ssh-keygen -R "[${ip}]:$new_ssh_port" &>/dev/null
-
-            ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
-            ssh-keyscan -H -p "$new_ssh_port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
-        done
+        remove_verification_keys "$port" "$hostname"
+        update_verification_keys "$new_ssh_port" "$hostname"
     fi
 
     known_hosts_backup="$HOME/.ssh/known_hosts.old"

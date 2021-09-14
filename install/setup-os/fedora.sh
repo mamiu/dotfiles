@@ -309,6 +309,7 @@ echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
 
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
+    # FIXME: this is still not working. seems like there's no way to achieve it.
     sudo tmux new-session -d -s reboot 'sleep 30; sudo reboot'
     # echo "sleep 30; reboot" | at now &>/dev/null
 else
