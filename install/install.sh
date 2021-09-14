@@ -379,8 +379,8 @@ check_os()
 
 remove_verification_keys()
 {
-    port=$1
-    hostname=$2
+    hostname=$1
+    port=$2
 
     # echo "Removing old host verification keys for $hostname from ~/.ssh/known_hosts ..."
     ssh-keygen -R "$hostname" &>/dev/null
@@ -391,17 +391,17 @@ remove_verification_keys()
 
 add_verification_key()
 {
-    port=$1
-    hostname=$2
+    hostname=$1
+    port=$2
 
     # echo "Adding host verification keys for $hostname to ~/.ssh/known_hosts ..."
-    ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
+    ssh-keyscan -H -p "$port" $hostname >> "$HOME/.ssh/known_hosts" 2>/dev/null
 }
 
 add_verification_keys_for_all_ips()
 {
-    port=$1
-    hostname=$2
+    hostname=$1
+    port=$2
 
     # If hostname is an IP address
     if [[ $hostname =~ ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$ ]]; then
@@ -415,20 +415,20 @@ add_verification_keys_for_all_ips()
         if (( port != 22 )); then
             ssh-keygen -R "[${ip}]:$port" &>/dev/null
         fi
-        ssh-keyscan -H -p "$port" -t rsa,ecdsa $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
-        ssh-keyscan -H -p "$port" -t rsa,ecdsa $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        ssh-keyscan -H -p "$port" $hostname,$ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
+        ssh-keyscan -H -p "$port" $ip >> "$HOME/.ssh/known_hosts" 2>/dev/null
     done
 }
 
 update_verification_keys()
 {
-    port=$1
-    hostname=$2
+    hostname=$1
+    port=$2
 
     echo "Update host verification keys for $hostname ..."
-    remove_verification_keys "$port" "$hostname"
-    add_verification_key "$port" "$hostname"
-    add_verification_keys_for_all_ips "$port" "$hostname"
+    remove_verification_keys "$hostname" "$port"
+    add_verification_key "$hostname" "$port"
+    add_verification_keys_for_all_ips "$hostname" "$port"
 }
 
 setup_remote_host()
@@ -463,13 +463,13 @@ setup_remote_host()
         params+=("--new-ssh-port=$new_ssh_port")
     fi
 
-    update_verification_keys "$port" "$hostname"
+    update_verification_keys "$hostname" "$port"
 
     ssh -o StrictHostKeyChecking=no -p $port $install_user@$hostname -t "${params[@]}"
 
     if [ "$change_ssh_port" == "true" ]; then
-        remove_verification_keys "$port" "$hostname"
-        update_verification_keys "$new_ssh_port" "$hostname"
+        remove_verification_keys "$hostname" "$port"
+        update_verification_keys "$hostname" "$new_ssh_port"
     fi
 
     known_hosts_backup="$HOME/.ssh/known_hosts.old"
