@@ -11,31 +11,43 @@ fi
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        -u)
+        -u|--admin-user)
             ADMIN_USER="$2"
             shift 2
+            if [ $? -gt 0 ]; then
+                echo "You must pass an admin user as second argument to -u or --admin-user!" >&2
+                exit 1
+            fi
         ;;
         --admin-user=*)
             ADMIN_USER="${1#*=}"
             shift
         ;;
-        -k)
+        -k|--add-ssh-key)
             PUBLIC_SSH_KEY="$2"
             shift 2
+            if [ $? -gt 0 ]; then
+                echo "You must pass a public SSH key as second argument to -k or --add-ssh-key!" >&2
+                exit 1
+            fi
         ;;
         --add-ssh-key=*)
             PUBLIC_SSH_KEY="${1#*=}"
             shift
         ;;
-        -p)
+        -p|--new-ssh-port)
             NEW_SSH_PORT="$2"
             shift 2
+            if [ $? -gt 0 ]; then
+                echo "You must pass a port number as second argument to -p or --new-ssh-port!" >&2
+                exit 1
+            fi
         ;;
         --new-ssh-port=*)
             NEW_SSH_PORT="${1#*=}"
             shift
         ;;
-        --reboot=*)
+        -r|--reboot)
             REBOOT_AFTER_INSTALLATION=true
             shift
         ;;
