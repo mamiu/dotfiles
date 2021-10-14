@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 
 # Combination of "mkdir" and "cd"
 function mkcd
