@@ -317,16 +317,6 @@ call_installation_script()
     fi
 
     if (( return_value == 0 )); then
-        if [ "$REBOOT_AFTER_INSTALLATION" ]; then
-            if sudo -n true &>/dev/null; then
-                echo "Reboot system in 30 seconds..."
-                nohup sudo bash -c 'sleep 30 && reboot' >/dev/null &
-            else
-                echo "Cannot reboot system, because install script has no root privileges (anymore)."
-                echo "Please reboot the system manually."
-            fi
-        fi
-
         echo
         echo "########## ${bold_start}MAMIU/DOTFILES${bold_end} WAS INSTALLED SUCCESSFULLY ##########"
         exit_program 0

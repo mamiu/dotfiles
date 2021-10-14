@@ -7,6 +7,8 @@ set -x GPG_TTY (tty)
 set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_DATA_HOME $HOME/.local/share
+# If you want to add a custom directory to your PATH environment
+# variable just duplicate the following line and adjust it
 set -x PATH $XDG_CONFIG_HOME/fish/scripts $PATH
 
 # FISH SHELL CONFIGS

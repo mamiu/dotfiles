@@ -1,5 +1,22 @@
 #!/usr/bin/env fish
 
+function __set_current_namespace
+    set -l NAMESPACE "$argv[1]"
+
+    if test -n "$NAMESPACE"
+        kubectl get ns "$NAMESPACE" &>/dev/null
+        if test $status -eq 0
+            set -U KUBE_CURRENT_NS "$NAMESPACE"
+            return
+        end
+    end
+
+    set -U KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
+    if test $status -gt 0
+        exit 1
+    end
+end
+
 function __print_current_namespace
     set_color $fish_color_autosuggestion
     echo "Current namespace: $KUBE_CURRENT_NS" >&2
@@ -53,10 +70,14 @@ function kubectl-namespaced
     end
 
     # You can set a namespace by passing the argument sn (set namespace) to this function
-    if test -z "$KUBE_CURRENT_NS" -o "$argv[1]" = "sn"
-        set -U KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
-        if test $status -gt 0
-            return
+    if test "$argv[1]" = "sn"
+        __set_current_namespace "$argv[2]"
+    else
+        if test -n "$KUBE_CURRENT_NS"
+            kubectl get ns "$KUBE_CURRENT_NS" &>/dev/null
+            or __set_current_namespace
+        else
+            __set_current_namespace
         end
     end
     __print_current_namespace
