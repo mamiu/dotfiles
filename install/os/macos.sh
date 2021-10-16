@@ -182,7 +182,7 @@ sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick
 sudo -Hu $TARGET_USER "$TARGET_USER_HOME/.homesick/repos/homeshick/bin/homeshick" link -f dotfiles
 
 # Backup property list files in case they exist and copy the new files to the app preferences folder
-app_preferences_path="$TARGET_USER_HOME/.homesick/repos/dotfiles/install/setup-os/resources/macos/app-preferences"
+app_preferences_path="$TARGET_USER_HOME/.homesick/repos/dotfiles/install/os/resources/macos/app-preferences"
 for file in $app_preferences_path/*
 do
     plist_filename=$(basename "$file")
@@ -251,6 +251,6 @@ echo "All dependencies are installed successfully."
 echo
 echo "Now you can install the mac apps of your choise."
 echo "The browser will automatically open at step 16 of this guide:"
-echo "https://github.com/mamiu/dotfiles/blob/master/install/setup-os/macos.md"
+echo "https://github.com/mamiu/dotfiles/blob/master/install/os/macos.md"
 
-sudo -Hu $TARGET_USER open "https://github.com/mamiu/dotfiles/blob/master/install/setup-os/macos.md#16-install-mac-apps-only-the-ones-you-really-need"
+sudo -Hu $TARGET_USER open "https://github.com/mamiu/dotfiles/blob/master/install/os/macos.md#16-install-mac-apps-only-the-ones-you-really-need"

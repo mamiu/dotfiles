@@ -288,7 +288,7 @@ call_installation_script()
 {
     current_script_path=$(get_path_of_current_file "$0")
     target_os=$1
-    install_script="${current_script_path}/setup-os/${target_os}.sh"
+    install_script="${current_script_path}/os/${target_os}.sh"
 
     params=()
     if [ "$ADMIN_USER" ]; then
@@ -311,7 +311,7 @@ call_installation_script()
         $run_as_root "$install_script" "${params[@]}" 2>&1 | $run_as_root tee $INSTALLATION_LOG_FILE
         return_value="$?"
     else
-        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/setup-os/${target_os}.sh" -o "./${target_os}.sh"
+        curl -sL "https://raw.githubusercontent.com/mamiu/dotfiles/master/install/os/${target_os}.sh" -o "./${target_os}.sh"
         chmod +x "./${target_os}.sh"
         # To get a colored output unbuffer the following command like so: https://superuser.com/a/751809/325412
         $run_as_root "./$target_os.sh" "${params[@]}" 2>&1 | $run_as_root tee $INSTALLATION_LOG_FILE
