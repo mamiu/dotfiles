@@ -4,16 +4,22 @@
 ####################### DESCRIPTION: #######################
 #
 # multiselect is a pure bash implementation of a multi
-# select menu.
+# selection menu.
+#
+# If "true" is passed as first argument a help (similar to
+# the overview in section "USAGE") will be printed before
+# showing the options. Any other value will hide it.
 #
 # The result will be stored as an array in a variable
-# that is passed to multiselect as first argument.
+# that is passed to multiselect as second argument.
 #
-# The second argument is an array that contains all
+# The third argument takes an array that contains all
 # available options.
 #
-# The last argument of the multiselect function is
-# optional and can be used to preselect certain options.
+# The last argument is optional and can be used to
+# preselect certain options. If used it must be an array
+# that has a value of "true" for every index of the options
+# array that should be preselected.
 #
 ########################## USAGE: ##########################
 #
@@ -29,7 +35,7 @@
 # my_options=(   "Option 1"  "Option 2"  "Option 3" )
 # preselection=( "true"      "true"      "false"    )
 #
-# multiselect result my_options preselection
+# multiselect "true" result my_options preselection
 #
 # idx=0
 # for option in "${my_options[@]}"; do
@@ -40,6 +46,14 @@
 ############################################################
 
 function multiselect {
+    if [[ $1 = "true" ]]; then
+        echo -e "j or ↓\t\t=> down"
+        echo -e "k or ↑\t\t=> up"
+        echo -e "⎵ (Space)\t=> toggle selection"
+        echo -e "⏎ (Enter)\t=> confirm selection"
+        echo
+    fi
+
     # little helpers for terminal print control and key input
     ESC=$( printf "\033")
     cursor_blink_on()   { printf "$ESC[?25h"; }
@@ -49,9 +63,9 @@ function multiselect {
     print_active()      { printf "$2  $ESC[7m $1 $ESC[27m"; }
     get_cursor_row()    { IFS=';' read -sdR -p $'\E[6n' ROW COL; echo ${ROW#*[}; }
 
-    local return_value=$1
-    local -n options=$2
-    local -n defaults=$3
+    local return_value=$2
+    local -n options=$3
+    local -n defaults=$4
 
     local selected=()
     for ((i=0; i<${#options[@]}; i++)); do
