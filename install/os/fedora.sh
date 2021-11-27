@@ -190,23 +190,6 @@ install_basic_packages() {
     if [ $(firewall-cmd --state --quiet) ]; then
         firewall-cmd --add-service=cockpit --permanent
     fi
-
-    # # Install k3s selinux compatibility packages
-    # dnf install -y container-selinux selinux-policy-base
-    # dnf install -y https://rpm.rancher.io/k3s-selinux-0.1.1-rc1.el7.noarch.rpm
-
-    # # Dependencies of k3s
-    # # Switch back to cgroups v1 because k3s is not able to handle v2 yet
-    # grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
-
-    # # Install k3s
-    # curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest bash -s - \
-    #     --write-kubeconfig-mode "0644" \
-    #     --disable=traefik \
-    #     --disable=servicelb \
-    #     --disable=local-storage \
-    #     --disable=metrics-server \
-    #     --kube-apiserver-arg="service-node-port-range=80-32767"
     { set +x; } 2>/dev/null
 }
 

@@ -71,6 +71,7 @@ function abbreviations
       abbr --add --global knpn "kn get pods -o name"
       abbr --add --global knl "kn logs -f"
       abbr --add --global kne "kn exec -it"
+      abbr --add --global kner "kn k3s-exec-as-root"
       abbr --add --global knv "kn vim"
       abbr --add --global knd "kn debug"
       abbr --add --global kdnf "kube-delete-ns"

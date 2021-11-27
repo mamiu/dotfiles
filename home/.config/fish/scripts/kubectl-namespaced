@@ -119,6 +119,18 @@ function kubectl-namespaced
         return
     end
 
+    if test "$argv[1]" = "k3s-exec-as-root"
+        set -l KUBE_SELECTED_POD (__select_pod)
+        set -l NODE_NAME (kubectl --namespace="$KUBE_CURRENT_NS" get "pod/$KUBE_SELECTED_POD" -o jsonpath="{.spec.nodeName}")
+        set -l CONTAINER_ID (kubectl --namespace="$KUBE_CURRENT_NS" get "pod/$KUBE_SELECTED_POD" -o jsonpath="{.status.containerStatuses[].containerID}" | sed 's/.*\/\///')
+
+        echo -e "Log into the node \"$NODE_NAME\" and run the following command:\n"
+        echo -e "sudo /var/lib/rancher/k3s/data/current/bin/runc \\"
+        echo -e "\t--root /run/containerd/runc/k8s.io exec \\"
+        echo -e "\t-t -u 0 $CONTAINER_ID sh -c 'fish || bash || ash || sh'\n"
+        return
+    end
+
     if count $argv > /dev/null; and test "$argv[1]" != "sn"
         kubectl -n "$KUBE_CURRENT_NS" $argv
     end
