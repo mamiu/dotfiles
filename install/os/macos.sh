@@ -138,12 +138,16 @@ if ! { sudo -Hu $TARGET_USER brew --help &>/dev/null; }; then
 fi
 
 # Install brew packages
-# highly recommended (basics)
-sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils bash openssh mosh python gawk
-# recommended (cli tools)
-sudo -Hu $TARGET_USER brew install git fish tmux vim ncdu htop kubernetes-cli fzf bat fd ripgrep jq reattach-to-user-namespace
-# optional
-# sudo -Hu $TARGET_USER brew install gnutls grep less gawk gnu-sed gnu-tar gzip rsync wget wdiff gnu-indent unzip gnu-which watch
+# GNU utils (minimum requirements)
+sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils gnu-getopt gawk gnutls grep gnu-sed gnu-tar gzip gnu-indent gnu-which gnu-time less python bash openssh p7zip rsync wget wdiff unzip watch
+# dependencies for the full experience of the mamiu dotfiles setup (highly recommended)
+sudo -Hu $TARGET_USER brew install mosh git fish tmux vim fzf bat fd ripgrep jq gpg nmap reattach-to-user-namespace
+# cli tools (recommended)
+sudo -Hu $TARGET_USER brew install ncdu htop nnn tig
+# kubernetes cli tools (only if kubernetes tools are needed)
+sudo -Hu $TARGET_USER brew install kubernetes-cli helm kubectx k9s k3d velero
+# misc nice-to-have cli tools (optional)
+sudo -Hu $TARGET_USER brew install libpq ffmpeg tree pipenv deno rclone sshuttle youtube-dl
 # macOS GUI apps
 sudo -Hu $TARGET_USER brew cask install iterm2
 

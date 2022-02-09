@@ -132,6 +132,7 @@ rm -rf ./fira_code_2*
   - [Clipy](https://github.com/Clipy/Clipy)
   - [ShiftIt](https://github.com/fikovnik/ShiftIt) (or [SizeUp](http://www.irradiatedsoftware.com/sizeup/))
   - [Itsycal](https://www.mowglii.com/itsycal/)
+  - [MonitorControl](https://github.com/MonitorControl/MonitorControl)
   - [Bitwarden](https://bitwarden.com/)
   - [KeepingYouAwake](https://github.com/newmarcel/KeepingYouAwake)
   - [Macs Fan Control (smcFanControl)](https://www.crystalidea.com/macs-fan-control)
