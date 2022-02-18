@@ -178,9 +178,9 @@ install_basic_packages() {
     apt-get install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
 
     # Install cockpit (https://cockpit-project.org/)
-    apt-get install -y cockpit
-    systemctl enable --now cockpit.socket
-    systemctl start cockpit
+    # apt-get install -y cockpit
+    # systemctl enable --now cockpit.socket
+    # systemctl start cockpit
 
     { set +x; } 2>/dev/null
 }
