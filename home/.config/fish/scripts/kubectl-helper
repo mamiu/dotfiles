@@ -63,9 +63,9 @@ function __select_file
     __select_file "$POD" "$NEW_PATH"
 end
 
-function kubectl-namespaced
+function kubectl-helper
     if not type -q fzf
-        echo "fzf must be installed in order to use kubectl-namespaced"
+        echo "fzf must be installed in order to use kubectl-helper"
         exit 1
     end
 
@@ -136,4 +136,4 @@ function kubectl-namespaced
     end
 end
 
-kubectl-namespaced $argv
+kubectl-helper $argv

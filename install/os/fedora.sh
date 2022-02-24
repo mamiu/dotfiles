@@ -176,12 +176,12 @@ install_basic_packages() {
     # tar              => an archiving utility
     # net-tools        => netstat (network statistics)
     # lsof             => list open files
-    # at               => run command at given time in the future
     # bind-utils       => dig (DNS lookup utility)
-    dnf install -y util-linux-user tar net-tools lsof at bind-utils
+    dnf install -y util-linux-user tar net-tools lsof bind-utils
 
     # Install most used packages
     dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
+    # install kubectx as soon as there's a package for dnf
 
     # Install cockpit (https://cockpit-project.org/)
     dnf install -y polkit cockpit

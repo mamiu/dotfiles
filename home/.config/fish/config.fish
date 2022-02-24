@@ -74,8 +74,6 @@ set -g theme_color_scheme base16
 # ALIASES
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
-alias k="kubectl"
-alias kn="kubectl-namespaced"
 alias ssh="env TMUX_AUTOSTART=true ssh"
 alias mosh="env TMUX_AUTOSTART=true mosh"
 

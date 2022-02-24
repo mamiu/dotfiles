@@ -49,6 +49,7 @@ function abbreviations
       abbr --add --global dcl 'docker compose logs'
       abbr --add --global dclf 'docker compose logs -f'
       abbr --add --global dcrm 'docker compose rm'
+      abbr --add --global k 'kubectl'
       abbr --add --global kc 'kubectl create -n'
       abbr --add --global kcn 'kubectl create namespace'
       abbr --add --global kcd 'kubectl create deploy -n'
@@ -64,16 +65,19 @@ function abbreviations
       abbr --add --global ksl 'kubectl -n kube-system logs'
       abbr --add --global kcc 'kubectl config current-context'
       abbr --add --global kcu 'kubectl config use-context'
-      abbr --add --global kns "kn sn"
-      abbr --add --global kna "kn get all"
-      abbr --add --global knp "kn get pods"
-      abbr --add --global knan "kn get all -o name"
-      abbr --add --global knpn "kn get pods -o name"
-      abbr --add --global knl "kn logs -f"
-      abbr --add --global kne "kn exec -it"
-      abbr --add --global kner "kn k3s-exec-as-root"
-      abbr --add --global knv "kn vim"
-      abbr --add --global knd "kn debug"
+      abbr --add --global kx "kubectx"
+      abbr --add --global kn "kubens"
+      abbr --add --global kh "kubectl-helper"
+      abbr --add --global khs "kubectl-helper sn"
+      abbr --add --global kha "kubectl-helper get all"
+      abbr --add --global khp "kubectl-helper get pods"
+      abbr --add --global khan "kubectl-helper get all -o name"
+      abbr --add --global khpn "kubectl-helper get pods -o name"
+      abbr --add --global khl "kubectl-helper logs -f"
+      abbr --add --global khe "kubectl-helper exec -it"
+      abbr --add --global kher "kubectl-helper k3s-exec-as-root"
+      abbr --add --global khv "kubectl-helper vim"
+      abbr --add --global khd "kubectl-helper debug"
       abbr --add --global kdnf "kube-delete-ns"
       abbr --add --global hga "helm get all"
       abbr --add --global hgh "helm get hooks"

@@ -175,7 +175,7 @@ install_basic_packages() {
     apt-get install -y net-tools at gawk
 
     # Install most used packages
-    apt-get install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
+    apt-get install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq kubectx
 
     # Install cockpit (https://cockpit-project.org/)
     # apt-get install -y cockpit
