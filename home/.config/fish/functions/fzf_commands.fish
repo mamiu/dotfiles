@@ -109,6 +109,7 @@ function fzf_commands
         end
 
         if type -q z
+            z -c > /dev/null
             set FZF_ALT_C_COMMAND "begin; z -l 2>/dev/null | awk '{ print \$2 }' | sed -e \"s#$HOME#~#g\"; $FZF_ALT_C_COMMAND; end"
         end
 
@@ -137,7 +138,7 @@ function fzf_commands
         or set FZF_TMUX_HEIGHT 40%
         begin
             set -lx FZF_DEFAULT_OPTS "--height $FZF_TMUX_HEIGHT --reverse $FZF_DEFAULT_OPTS $FZF_ALT_C_OPTS"
-            eval "$FZF_ALT_C_COMMAND | "(__fzfcmd)' +m --query "'$fzf_query'"' | read -l result
+            eval "$FZF_ALT_C_COMMAND | "(__fzfcmd)' +m --no-sort --query "'$fzf_query'"' | read -l result
 
             if test -n "$result"
                 if string match -q '~*' "$result"
