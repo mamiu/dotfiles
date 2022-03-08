@@ -7,7 +7,8 @@ function abbreviations
       abbr --add --global n 'netstat -tlpn'
       abbr --add --global gc 'git clone'
       abbr --add --global ga 'git add -A'
-      abbr --add --global gco 'git commit -am'
+      abbr --add --global gco 'git commit -m'
+      abbr --add --global gca 'git commit -am'
       abbr --add --global gp 'git push'
       abbr --add --global gpf 'git push -f'
       abbr --add --global gpu 'git push -u origin main'
@@ -63,6 +64,7 @@ function abbreviations
       abbr --add --global ksa 'kubectl -n kube-system get all'
       abbr --add --global ksp 'kubectl -n kube-system get pods'
       abbr --add --global ksl 'kubectl -n kube-system logs'
+      abbr --add --global kcg 'kubectl config get-contexts'
       abbr --add --global kcc 'kubectl config current-context'
       abbr --add --global kcu 'kubectl config use-context'
       abbr --add --global kx "kubectx"
