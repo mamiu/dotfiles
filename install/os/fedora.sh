@@ -181,7 +181,14 @@ install_basic_packages() {
 
     # Install most used packages
     dnf install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
-    # install kubectx as soon as there's a package for dnf
+
+    # Install kubectx
+    git clone https://github.com/ahmetb/kubectx /opt/kubectx
+    ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx
+    ln -s /opt/kubectx/kubens /usr/local/bin/kubens
+    mkdir -p ~/.config/fish/completions
+    ln -s /opt/kubectx/completion/kubectx.fish ~/.config/fish/completions/
+    ln -s /opt/kubectx/completion/kubens.fish ~/.config/fish/completions/
 
     # Install cockpit (https://cockpit-project.org/)
     dnf install -y polkit cockpit
@@ -307,7 +314,10 @@ if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     nohup bash -c 'sleep 30 && reboot' &>/dev/null &
     sleep 2
 else
-    systemctl restart sshd.service
+    # Ensure that we're not in WSL (Windows Subsystem for Linux)
+    if grep -vqi Microsoft /proc/version; then
+        systemctl restart sshd.service
+    fi
 fi
 
 exit 0
