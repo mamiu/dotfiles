@@ -73,11 +73,7 @@ function kubectl-helper
         exit 1
     end
 
-    # You can set a namespace by passing the argument sn (set namespace) to this function
-    if test "$argv[1]" = "sn"
-        __set_current_namespace "$argv[2]"
-        return
-    else
+    if test "$argv[1]" != "sn"
         if test -n "$KUBE_CURRENT_NS"
             kubectl get ns "$KUBE_CURRENT_NS" &>/dev/null
             or __set_current_namespace
@@ -86,65 +82,119 @@ function kubectl-helper
         end
     end
 
-    if test "$argv[1]" = "debug"
-        kubectl run --namespace="$KUBE_CURRENT_NS" --image=humiu/debug --rm -it debug
-        return
-    end
+    switch "$argv[1]"
+        case "get" "get-namespace" "gn"
+            __print_current_namespace
+            return
 
-    if test "$argv[1]" = "exec"
-        set -l KUBE_SELECTED_POD (__select_pod)
-        commandline -b "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" -- bash"
-        return
-    end
+        case "set" "set-namespace" "sn"
+            # You can set a namespace by passing the argument sn (set namespace) to this function
+            __set_current_namespace "$argv[2]"
+            return
 
-    if test "$argv[1]" = "logs"
-        set -l KUBE_SELECTED_POD (__select_pod)
-        if type -q $__BAT_CMD
-            set logs_pager "$__BAT_CMD -l log --style numbers"
-        else
-            set logs_pager "less"
-        end
-        fish -c "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" | $logs_pager"
-        return
-    end
+        case "list" "ls" "list-namespaces" "ln"
+            kubectl get ns -o name | sed -e "s/^[^/]*\///g"
+            return
 
-    if test "$argv[1]" = "vim"
-        set -l KUBE_SELECTED_POD (__select_pod)
+        case "debug"
+            kubectl run --namespace="$KUBE_CURRENT_NS" --image=humiu/debug --rm -it debug
+            return
 
-        if test -n "$argv[2]"
-            and kubectl --namespace="$KUBE_CURRENT_NS" exec -it "pod/$KUBE_SELECTED_POD" -- sh -c "if [ -f \"$argv[2]\" ]; then true; else false; fi" 2>/dev/null
+        case "exec"
+            set -l KUBE_SELECTED_POD (__select_pod)
+            commandline -b "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" -- bash"
+            return
 
-            set FILE_PATH "$argv[2]"
-        else
-            set FILE_PATH (__select_file "$KUBE_SELECTED_POD" "/")
-        end
+        case "logs"
+            set -l KUBE_SELECTED_POD (__select_pod)
+            if type -q $__BAT_CMD
+                set logs_pager "$__BAT_CMD -l log --style numbers"
+            else
+                set logs_pager "less"
+            end
+            fish -c "kubectl -n \"$KUBE_CURRENT_NS\" $argv \"$KUBE_SELECTED_POD\" | $logs_pager"
+            return
 
-        set -l FILE_NAME (string replace -r ".*/" "" "$FILE_PATH")
-        set -l TMP_DIR "/tmp/kubectl-helper"
-        set -l TMP_FILE "$TMP_DIR/$FILE_NAME"
+        case "vim"
+            set -l KUBE_SELECTED_POD (__select_pod)
 
-        mkdir -p "$TMP_DIR"
-        kubectl --namespace="$KUBE_CURRENT_NS" exec "pod/$KUBE_SELECTED_POD" -- cat "$FILE_PATH" > "$TMP_FILE" 2>/dev/null
-        vim "$TMP_FILE"
-        cat "$TMP_FILE" | kubectl --namespace="$KUBE_CURRENT_NS" exec -i "pod/$KUBE_SELECTED_POD" -- sh -c "cat - >$FILE_PATH && echo done >/dev/null" 2>/dev/null
-        # rm "$TMP_FILE"
-        return
-    end
+            if test -n "$argv[2]"
+                and kubectl --namespace="$KUBE_CURRENT_NS" exec -it "pod/$KUBE_SELECTED_POD" -- sh -c "if [ -f \"$argv[2]\" ]; then true; else false; fi" 2>/dev/null
 
-    if test "$argv[1]" = "k3s-exec-as-root"
-        set -l KUBE_SELECTED_POD (__select_pod)
-        set -l NODE_NAME (kubectl --namespace="$KUBE_CURRENT_NS" get "pod/$KUBE_SELECTED_POD" -o jsonpath="{.spec.nodeName}")
-        set -l CONTAINER_ID (kubectl --namespace="$KUBE_CURRENT_NS" get "pod/$KUBE_SELECTED_POD" -o jsonpath="{.status.containerStatuses[].containerID}" | sed 's/.*\/\///')
+                set FILE_PATH "$argv[2]"
+            else
+                set FILE_PATH (__select_file "$KUBE_SELECTED_POD" "/")
+            end
 
-        echo -e "Log into the node \"$NODE_NAME\" and run the following command:\n"
-        echo -e "sudo /var/lib/rancher/k3s/data/current/bin/runc \\"
-        echo -e "\t--root /run/containerd/runc/k8s.io exec \\"
-        echo -e "\t-t -u 0 $CONTAINER_ID sh -c 'fish || bash || ash || sh'\n"
-        return
-    end
+            set -l FILE_NAME (string replace -r ".*/" "" "$FILE_PATH")
+            set -l TMP_DIR "/tmp/kubectl-helper"
+            set -l TMP_FILE "$TMP_DIR/$FILE_NAME"
 
-    if count $argv > /dev/null
-        kubectl -n "$KUBE_CURRENT_NS" $argv
+            mkdir -p "$TMP_DIR"
+            kubectl --namespace="$KUBE_CURRENT_NS" exec "pod/$KUBE_SELECTED_POD" -- cat "$FILE_PATH" > "$TMP_FILE" 2>/dev/null
+            vim "$TMP_FILE"
+            cat "$TMP_FILE" | kubectl --namespace="$KUBE_CURRENT_NS" exec -i "pod/$KUBE_SELECTED_POD" -- sh -c "cat - >$FILE_PATH && echo done >/dev/null" 2>/dev/null
+            # rm "$TMP_FILE"
+            return
+
+        case "k3s-exec-as-root" "ear"
+            set -l KUBE_SELECTED_POD (__select_pod)
+            set -l NODE_NAME (kubectl --namespace="$KUBE_CURRENT_NS" get "pod/$KUBE_SELECTED_POD" -o jsonpath="{.spec.nodeName}")
+            set -l CONTAINER_ID (kubectl --namespace="$KUBE_CURRENT_NS" get "pod/$KUBE_SELECTED_POD" -o jsonpath="{.status.containerStatuses[].containerID}" | sed 's/.*\/\///')
+
+            echo -e "Log into the node \"$NODE_NAME\" and run the following command:\n"
+            echo -e "sudo /var/lib/rancher/k3s/data/current/bin/runc \\"
+            echo -e "\t--root /run/containerd/runc/k8s.io exec \\"
+            echo -e "\t-t -u 0 $CONTAINER_ID sh -c 'fish || bash || ash || sh'\n"
+            return
+
+        case "force-delete-namespace" "force-delete-ns" "fdns"
+            set NAMESPACES_TO_DELETE "$argv[2..-1]"
+            if test -z "$NAMESPACES_TO_DELETE"
+                set NAMESPACES_TO_DELETE (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
+                if test $status -gt 0
+                    echo "Something went wrong when selecting a namespace" >/dev/stderr
+                    exit 1
+                else if test -z "$NAMESPACES_TO_DELETE"
+                    echo "You have to choose a namespace you want to delete" >/dev/stderr
+                    exit 1
+                end
+            end
+
+            kubectl proxy &>/dev/null &
+            set KUBE_PROXY_PID $last_pid
+            for ns in "$NAMESPACES_TO_DELETE"
+                echo -en " Checking namespace "(set_color -o)"\033[1;34m$ns\033[1;0m"(set_color normal)
+                kubectl get ns $ns &>/dev/null
+                if test $status -gt 0
+                    echo -ne "\033[2K\033[10000D"
+                    set_color --italics ff3
+                    echo -n " i"
+                    set_color normal
+                    echo -e " Namespace \033[1;34m$ns\033[1;0m doesn't exist or already deleted"
+                    continue
+                end
+                echo -en "\033[2K\033[10000D Deleting namespace "(set_color -o)"\033[1;34m$ns\033[1;0m"(set_color normal)" ..."
+                kubectl get namespace $ns -o json | jq '.spec = {"finalizers":[]}' >/tmp/kube-ns-to-delete.json
+                curl -ks \
+                    -o /dev/null \
+                    -H "Content-Type: application/json" \
+                    -X PUT \
+                    --data-binary @/tmp/kube-ns-to-delete.json \
+                    http://127.0.0.1:8001/api/v1/namespaces/$ns/finalize 2>&1
+                # following line is doing cursor movements (https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html, http://ascii-table.com/ansi-escape-sequences.php, https://en.wikipedia.org/wiki/ANSI_escape_code#Terminal_output_sequences)
+                echo -e "\033[2K\033[10000D \033[0;32m✔\033[0m Deleted \033[1;34m$ns\033[1;0m"
+            end
+            if test -e /tmp/kube-ns-to-delete.json
+                rm /tmp/kube-ns-to-delete.json &>/dev/null
+            end
+            kill -TERM $KUBE_PROXY_PID
+            return
+
+        case "*"
+            kubectl -n "$KUBE_CURRENT_NS" $argv
+            return
+
     end
 end
 
