@@ -270,6 +270,9 @@ install_basic_packages
 setup_dotfiles
 
 # Make fish the default shell for the current user
+if ! grep -Fxq "$(which fish)" /etc/shells; then
+    echo $(which fish) >> /etc/shells
+fi
 chsh -s $(which fish)
 
 if [ "$ADMIN_USER" ]; then
