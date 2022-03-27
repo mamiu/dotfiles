@@ -1,5 +1,7 @@
 #!/usr/bin/env fish
 
+# set fish_trace 1
+
 function __set_current_namespace
     set -l NAMESPACE "$argv[1]"
 
@@ -7,14 +9,16 @@ function __set_current_namespace
         kubectl get ns "$NAMESPACE" &>/dev/null
         if test $status -eq 0
             set -U KUBE_CURRENT_NS "$NAMESPACE"
-            return
+        end
+    else
+        set -U KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
+        if test $status -gt 0
+            echo "Something went wrong when selecting a namespace" >/dev/stderr
+            exit 1
         end
     end
 
-    set -U KUBE_CURRENT_NS (kubectl get ns -o name | sed -e "s/^[^/]*\///g" | fzf)
-    if test $status -gt 0
-        exit 1
-    end
+    __print_current_namespace
 end
 
 function __print_current_namespace
@@ -72,6 +76,7 @@ function kubectl-helper
     # You can set a namespace by passing the argument sn (set namespace) to this function
     if test "$argv[1]" = "sn"
         __set_current_namespace "$argv[2]"
+        return
     else
         if test -n "$KUBE_CURRENT_NS"
             kubectl get ns "$KUBE_CURRENT_NS" &>/dev/null
@@ -80,7 +85,6 @@ function kubectl-helper
             __set_current_namespace
         end
     end
-    __print_current_namespace
 
     if test "$argv[1]" = "debug"
         kubectl run --namespace="$KUBE_CURRENT_NS" --image=humiu/debug --rm -it debug
@@ -106,9 +110,17 @@ function kubectl-helper
 
     if test "$argv[1]" = "vim"
         set -l KUBE_SELECTED_POD (__select_pod)
-        set -l FILE_PATH (__select_file "$KUBE_SELECTED_POD" "/")
+
+        if test -n "$argv[2]"
+            and kubectl --namespace="$KUBE_CURRENT_NS" exec -it "pod/$KUBE_SELECTED_POD" -- sh -c "if [ -f \"$argv[2]\" ]; then true; else false; fi" 2>/dev/null
+
+            set FILE_PATH "$argv[2]"
+        else
+            set FILE_PATH (__select_file "$KUBE_SELECTED_POD" "/")
+        end
+
         set -l FILE_NAME (string replace -r ".*/" "" "$FILE_PATH")
-        set -l TMP_DIR "/tmp/kctl-nspd"
+        set -l TMP_DIR "/tmp/kubectl-helper"
         set -l TMP_FILE "$TMP_DIR/$FILE_NAME"
 
         mkdir -p "$TMP_DIR"
@@ -131,7 +143,7 @@ function kubectl-helper
         return
     end
 
-    if count $argv > /dev/null; and test "$argv[1]" != "sn"
+    if count $argv > /dev/null
         kubectl -n "$KUBE_CURRENT_NS" $argv
     end
 end
