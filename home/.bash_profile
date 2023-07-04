@@ -6,6 +6,6 @@ fi
 
 # Use fish as login shell
 case "$-" in
-    *i*) fish -il; exit ;;
+    *i*) exec fish -il ;;
     *)  ;;
 esac

@@ -102,7 +102,7 @@ configure_new_server()
 
     # setup admin user
     if [ -z "$setup_admin_user" ] || [ -z "$admin_user" ]; then
-        read -p "Do you want to setup a new admin user? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
+        read -p "Do you want to setup a new admin user (you can choose an existing user or create a new one)? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
         [ -z "$setup_admin_user" ] && setup_admin_user="y"
         case "${setup_admin_user:0:1}" in
             y|Y )

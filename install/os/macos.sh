@@ -130,6 +130,9 @@ TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
 # Install homebrew if it's not installed already
 if ! { sudo -Hu $TARGET_USER brew --help &>/dev/null; }; then
     sudo -Hu $TARGET_USER /usr/bin/env bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    sed -i '' '1s/^/\/opt\/homebrew\/bin\'$'\n/' /etc/paths
+    PATH=/opt/homebrew/bin:$PATH
+    export PATH
 
     if [[ $? -gt 0 ]]; then
         echo -e "\nHomebrew installation failed. Check the log or try again later." >&2
@@ -139,10 +142,10 @@ fi
 
 # Install brew packages
 # GNU utils (minimum requirements)
-sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils gnu-getopt gawk gnutls grep gnu-sed gnu-tar gzip gnu-indent gnu-which gnu-time less python bash openssh p7zip rsync wget wdiff unzip watch
+sudo -Hu $TARGET_USER brew install coreutils binutils diffutils findutils gnu-getopt gawk gnutls grep gnu-sed gnu-tar gzip gnu-indent gnu-which gnu-time less python bash openssh p7zip rsync wget netcat wdiff unzip watch
 # dependencies for the full experience of the mamiu dotfiles setup (highly recommended)
 sudo -Hu $TARGET_USER brew install mosh git fish tmux vim fzf bat fd ripgrep jq gpg nmap reattach-to-user-namespace
-# cli tools (recommended)
+# TUI tools (cli tools that provide a terminal or text-based user interface) (recommended)
 sudo -Hu $TARGET_USER brew install ncdu htop nnn tig
 # kubernetes cli tools (only if kubernetes tools are needed)
 sudo -Hu $TARGET_USER brew install kubernetes-cli helm kubectx k9s k3d velero
