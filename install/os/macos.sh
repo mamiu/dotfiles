@@ -152,7 +152,7 @@ sudo -Hu $TARGET_USER brew install kubernetes-cli helm kubectx k9s k3d velero
 # misc nice-to-have cli tools (optional)
 sudo -Hu $TARGET_USER brew install libpq ffmpeg tree pipenv deno rclone sshuttle youtube-dl
 # macOS GUI apps
-sudo -Hu $TARGET_USER brew cask install iterm2
+sudo -Hu $TARGET_USER brew install --cask iterm2
 
 # Create a folder with symbolic links to all the gnu binaries
 gnubin_dir="/usr/local/gnubin"
