@@ -256,7 +256,7 @@ if has('persistent_undo')
 endif
 set viminfo+=n~/.vim/dirs/viminfo
 " store yankring history file there too
-let g:yankring_history_dir = '~/.vim/dirs/'
+let g:yankring_history_dir = '~/.vim/dirs'
 
 " create needed directories if they don't exist
 if !isdirectory(&backupdir)
