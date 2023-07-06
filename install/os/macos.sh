@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# enable recursive globbing
+shopt -s globstar
+
 # helper variables to make text bold
 bold_start=$(tput bold)
 bold_end=$(tput sgr0)
