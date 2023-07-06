@@ -126,18 +126,23 @@ case "${installation_confirmation:0:1}" in
 esac
 
 TARGET_USER_HOME=$(su - $TARGET_USER -c 'echo $HOME')
+HOMEBREW_BIN_DIR="/opt/homebrew/bin"
 
 # Install homebrew if it's not installed already
 if ! { sudo -Hu $TARGET_USER brew --help &>/dev/null; }; then
     sudo -Hu $TARGET_USER /usr/bin/env bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    sed -i '' '1s/^/\/opt\/homebrew\/bin\'$'\n/' /etc/paths
-    PATH=/opt/homebrew/bin:$PATH
+    PATH=$HOMEBREW_BIN_DIR:$PATH
     export PATH
 
     if [[ $? -gt 0 ]]; then
         echo -e "\nHomebrew installation failed. Check the log or try again later." >&2
         exit 1
     fi
+fi
+
+# Add /usr/local/gnubin as first line to /etc/paths
+if ! grep -Fxq "$HOMEBREW_BIN_DIR" /etc/paths; then
+    sed -i '' '1s/^/\/opt\/homebrew\/bin\'$'\n/' /etc/paths
 fi
 
 # Install brew packages
@@ -154,25 +159,19 @@ sudo -Hu $TARGET_USER brew install libpq ffmpeg tree pipenv deno rclone sshuttle
 # macOS GUI apps
 sudo -Hu $TARGET_USER brew install --cask iterm2
 
-# Create a folder with symbolic links to all the gnu binaries
-gnubin_dir="/usr/local/gnubin"
-if [ ! -d "$gnubin_dir" ]; then
-    mkdir /usr/local/gnubin
-    chown -R $TARGET_USER:admin "$gnubin_dir/"
+# Create the Homebrew binaries folder if it doesn't exist yet
+if [ ! -d "$HOMEBREW_BIN_DIR" ]; then
+    mkdir -p "$HOMEBREW_BIN_DIR"
+    chown -R $TARGET_USER:admin "$HOMEBREW_BIN_DIR/"
 fi
 
-for gnuutil in /usr/local/opt/**/libexec/gnubin/*; do
-  sudo -Hu $TARGET_USER ln -fs "$gnuutil" "$gnubin_dir/"
+for gnuutil in /opt/homebrew/**/libexec/gnubin/*; do
+  sudo -Hu $TARGET_USER ln -fs "$gnuutil" "$HOMEBREW_BIN_DIR/"
 done
 
-for pybin in /usr/local/opt/python*/libexec/bin/*; do
-  sudo -Hu $TARGET_USER ln -fs "$pybin" "$gnubin_dir/"
+for pybin in /opt/homebrew/**/python/libexec/bin/*; do
+  sudo -Hu $TARGET_USER ln -fs "$pybin" "$HOMEBREW_BIN_DIR/"
 done
-
-# Add /usr/local/gnubin as first line to /etc/paths
-if ! grep -Fxq "$gnubin_dir" /etc/paths; then
-    sed -i '' '1s/^/\/usr\/local\/gnubin\'$'\n/' /etc/paths
-fi
 
 # Download homeshick
 if [ ! -d "$TARGET_USER_HOME/.homesick/repos/homeshick" ]; then
