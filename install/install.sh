@@ -47,6 +47,9 @@ configure_new_server()
 
     add_ssh_config="$4"
 
+    nickname="$5"
+    [ -z "$nickname" ] && nickname="$hostname"
+
     # Servers domain or IP address
     if [ -z "$hostname" ]; then
         read -p "Hostname or IP address of the server: " hostname </dev/tty
@@ -63,7 +66,8 @@ configure_new_server()
     fi
     while ! nc -z $hostname $port &>/dev/null
     do
-        read -p "Port is not open. Please enter a valid port: " port </dev/tty
+        read -p "Port $port is not open. Please enter the port where the ssh server is listening on [default=${bold_start}22${bold_end}]: " port </dev/tty
+        [ -z "$port" ] && port="22"
     done
 
 
@@ -122,7 +126,7 @@ configure_new_server()
     fi
 
     # add this config to ssh config
-    if [ -z "$add_ssh_config" ]; then
+    if [ "$add_ssh_config" != "false" ]; then
         read -p "Add this config to SSH config file? [${bold_start}Y${bold_end}/n] " add_ssh_config </dev/tty
         [ -z "$add_ssh_config" ] && add_ssh_config="y"
         case "${add_ssh_config:0:1}" in
@@ -207,7 +211,7 @@ configure_new_server()
         ;;
     esac
 
-    setup_remote_host $hostname $port $install_user $setup_admin_user $admin_user $ssh_copy_id $reboot_after_installation $change_ssh_port $new_ssh_port
+    setup_remote_host $hostname $port $install_user $nickname $setup_admin_user $admin_user $ssh_copy_id $reboot_after_installation $change_ssh_port $new_ssh_port
 }
 
 choose_remote_host()
@@ -239,10 +243,10 @@ choose_remote_host()
                 [ -z "$is_clean_install" ] && is_clean_install="y"
                 case "${is_clean_install:0:1}" in
                     y|Y )
-                        configure_new_server $hostname $port $username "false"
+                        configure_new_server "$hostname" "$port" "$username" "false" "$host_option"
                     ;;
                     n|N )
-                        setup_remote_host $hostname $port $username
+                        setup_remote_host "$hostname" "$port" "$username" "$host_option"
                     ;;
                     * )
                         echo "Unavailable option: \"$is_clean_install\"" >/dev/stderr
@@ -291,19 +295,11 @@ call_installation_script()
     install_script="${current_script_path}/os/${target_os}.sh"
 
     params=()
-    if [ "$ADMIN_USER" ]; then
-        params+=("--admin-user=$ADMIN_USER")
-    fi
-    if [ "$PUBLIC_SSH_KEY" ]; then
-        params+=("--add-ssh-key=$PUBLIC_SSH_KEY")
-    fi
-    if [ "$NEW_SSH_PORT" ]; then
-        params+=("--new-ssh-port=$NEW_SSH_PORT")
-    fi
-    if [ "$REBOOT_AFTER_INSTALLATION" ]; then
-        params+=("--reboot")
-    fi
-
+    [ "$ADMIN_USER" ] && params+=("--admin-user=$ADMIN_USER")
+    [ "$NICKNAME" ] && params+=("--nickname=$NICKNAME")
+    [ "$PUBLIC_SSH_KEY" ] && params+=("--add-ssh-key=$PUBLIC_SSH_KEY")
+    [ "$NEW_SSH_PORT" ] && params+=("--new-ssh-port=$NEW_SSH_PORT")
+    [ "$REBOOT_AFTER_INSTALLATION" ] && params+=("--reboot")
 
     (( EUID != 0 )) && run_as_root="sudo -s"
     if [ -f "$install_script" ]; then
@@ -429,32 +425,28 @@ setup_remote_host()
     echo
     echo "########## SETUP REMOTE HOST ##########"
 
-    hostname=$1
-    port=$2
-    install_user=$3
-    setup_admin_user=$4
-    admin_user=$5
-    ssh_copy_id=$6
-    reboot_after_installation=$7
-    change_ssh_port=$8
-    new_ssh_port=$9
+    hostname="$1"
+    port="$2"
+    install_user="$3"
+    nickname="$4"
+    setup_admin_user="$5"
+    admin_user="$6"
+    ssh_copy_id="$7"
+    reboot_after_installation="$8"
+    change_ssh_port="$9"
+    new_ssh_port=${10}
 
     echo "username: $install_user"
     echo "hostname: $hostname"
 
-    params=("curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s -- -l --no-greeting")
-    if [ "$setup_admin_user" == "true" ]; then
-        params+=("--admin-user=$admin_user")
-    fi
-    if [ "$reboot_after_installation" == "true" ]; then
-        params+=("--reboot")
-    fi
-    if [ "$ssh_copy_id" == "true" ]; then
-        params+=("--add-ssh-key='$(get_public_ssh_key)'")
-    fi
-    if [ "$change_ssh_port" == "true" ]; then
-        params+=("--new-ssh-port=$new_ssh_port")
-    fi
+    params=("curl -sL https://raw.githubusercontent.com/mamiu/dotfiles/master/install/install.sh | bash -s --")
+    params+=("--local")
+    params+=("--no-greeting")
+    params+=("--nickname=$nickname")
+    [ "$setup_admin_user" == "true" ] && params+=("--admin-user=$admin_user")
+    [ "$reboot_after_installation" == "true" ] && params+=("--reboot")
+    [ "$ssh_copy_id" == "true" ] && params+=("--add-ssh-key='$(get_public_ssh_key)'")
+    [ "$change_ssh_port" == "true" ] && params+=("--new-ssh-port=$new_ssh_port")
 
     update_verification_keys "$hostname" "$port"
 
@@ -508,7 +500,7 @@ while [ $# -gt 0 ]; do
         INSTALLATION_TARGET="local"
         shift
     ;;
-    -n|--no-greeting)
+    -g|--no-greeting)
         NO_GREETING=true
         shift
     ;;
@@ -526,6 +518,18 @@ while [ $# -gt 0 ]; do
     ;;
     --admin-user=*)
         ADMIN_USER="${1#*=}"
+        shift
+    ;;
+    -n|--nickname)
+        NICKNAME="$2"
+        shift 2
+        if [ $? -gt 0 ]; then
+            echo "You must pass a nickname as second argument to -n or --nickname!" >&2
+            exit 1
+        fi
+    ;;
+    --nickname=*)
+        NICKNAME="${1#*=}"
         shift
     ;;
     -k|--add-ssh-key)

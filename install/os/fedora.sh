@@ -23,6 +23,18 @@ while [ $# -gt 0 ]; do
             ADMIN_USER="${1#*=}"
             shift
         ;;
+        -n|--nickname)
+            NICKNAME="$2"
+            shift 2
+            if [ $? -gt 0 ]; then
+                echo "You must pass a nickname as second argument to -n or --nickname!" >&2
+                exit 1
+            fi
+        ;;
+        --nickname=*)
+            NICKNAME="${1#*=}"
+            shift
+        ;;
         -k|--add-ssh-key)
             PUBLIC_SSH_KEY="$2"
             shift 2
@@ -77,7 +89,10 @@ read -p "Change hostname (current hostname is ${bold_start}$(hostname)${bold_end
 [ -z "$change_hostname" ] && change_hostname="y"
 case "${change_hostname:0:1}" in
     y|Y )
-        read -p "New hostname: " new_hostname </dev/tty
+        default_hostname=""
+        [ -n "$NICKNAME" ] && default_hostname=" [${bold_start}$NICKNAME${bold_end}]" 
+        read -p "New hostname$default_hostname: " new_hostname </dev/tty
+        [ -z "$new_hostname" ] && [ -n "$NICKNAME" ] && new_hostname="$NICKNAME"
         while [ -z "$new_hostname" ] || [[ ! "$new_hostname" =~ ^[0-9a-zA-Z.-]+$ ]]
         do
             read -p "Hostname must only contain lowercase and uppercase letters, numbers, dashes (-) and dots (.): " new_hostname </dev/tty
