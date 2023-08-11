@@ -102,7 +102,7 @@ configure_new_server()
 
     # setup admin user
     if [ -z "$setup_admin_user" ] || [ -z "$admin_user" ]; then
-        read -p "Do you want to setup a new admin user (you can choose an existing user or create a new one)? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
+        read -p "Do you want to set up a new admin user (you can choose an existing user or create a new one)? [${bold_start}Y${bold_end}/n] " setup_admin_user </dev/tty
         [ -z "$setup_admin_user" ] && setup_admin_user="y"
         case "${setup_admin_user:0:1}" in
             y|Y )
@@ -235,7 +235,7 @@ choose_remote_host()
 
                 # check if server got a clean install (https://www.pcmag.com/encyclopedia/term/clean-install)
                 echo
-                read -p "Was the server ($host_option) clean installed (no admin user, no different ssh port, etc.)? [${bold_start}Y${bold_end}/n] " is_clean_install </dev/tty
+                read -p "Was this server ($host_option) clean installed (no admin user, no custom ssh port, etc.)? [${bold_start}Y${bold_end}/n] " is_clean_install </dev/tty
                 [ -z "$is_clean_install" ] && is_clean_install="y"
                 case "${is_clean_install:0:1}" in
                     y|Y )
@@ -479,7 +479,7 @@ choose_install_target()
     # install remote or locally
     while :
     do
-        read -p "Do you want to setup the (l)ocal or a (r)emote host? [l/${bold_start}R${bold_end}] " install_target </dev/tty || install_target="l"
+        read -p "Do you want to set up the (l)ocal or a (r)emote host? [l/${bold_start}R${bold_end}] " install_target </dev/tty || install_target="l"
         [ -z "$install_target" ] && install_target="r"
         case "${install_target:0:1}" in
             r|R )

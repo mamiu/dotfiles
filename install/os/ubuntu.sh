@@ -171,8 +171,7 @@ install_basic_packages() {
 
     # Just to make sure that the very basics are installed
     # net-tools        => netstat (network statistics)
-    # at               => run command at given time in the future
-    apt-get install -y net-tools at gawk
+    apt-get install -y net-tools gawk
 
     # Install most used packages
     apt-get install -y git vim fish tmux mosh ncdu htop fzf bat fd-find ripgrep jq
@@ -277,30 +276,57 @@ if [ "$ADMIN_USER" ]; then
     { set +x; } 2>/dev/null
 fi
 
-# activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
 ssh_config_file="/etc/ssh/sshd_config"
 
-if [ "$NEW_SSH_PORT" ]; then
-    echo "Changing ssh port to: $NEW_SSH_PORT"
-    port_line_number="$(awk '/^Port / {print FNR}' $ssh_config_file)"
-    if [ "$port_line_number" ]; then
-        sed -i "${port_line_number}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
-    else
-        port_line_number="$(awk '/^#Port / {print FNR}' $ssh_config_file)"
-        if [ "$port_line_number" ]; then
-            sed -i "${port_line_number}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
-        else
-            echo "" >> $ssh_config_file
-            echo "Port $NEW_SSH_PORT" >> $ssh_config_file
-        fi
-    fi
-
-    # TODO: if firewall is turned on, open the new port
-fi
-
+# Activate tmux autostart
+# Automatically start tmux or attach to the current session at login
+# SSH client has to pass the environment variable TMUX_AUTOSTART=true
 echo "" >> $ssh_config_file
 echo "# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_config_file
 echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
+
+if [ "$NEW_SSH_PORT" ]; then
+    echo "Changing ssh port to: $NEW_SSH_PORT"
+
+    get_port_line_number() {
+        awk "/^[$1]*Port [1-9][0-9]{0,4}[ ]*/ {print FNR; exit}" $ssh_config_file
+    }
+
+    if port_line_number="$(get_port_line_number ' ')" && [ "$port_line_number" ]; then
+        sed -i "${port_line_number}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
+    elif port_line_number="$(get_port_line_number '# ')" && [ "$port_line_number" ]; then
+        sed -i "${port_line_number}s/.*/Port $NEW_SSH_PORT/" $ssh_config_file
+    else
+        echo -e "\nPort $NEW_SSH_PORT" >> $ssh_config_file
+    fi
+
+
+##############################################################
+#####  THIS IS FOR FUTURE UBUNTU VERSIONS.                   #
+#####  JUST REPLACE THE ABOVE CODE WITH THE CODE DOWN BELOW  #
+#####  ONCE UBUNTU SWITCHES TO SOCKET-BASED ACTIVATION       #
+##############################################################
+#
+#     ssh_socket_file="/etc/systemd/system/ssh.socket.d/listen.conf"
+
+#     if [[ ! -e "$ssh_socket_file" ]]; then
+#         cat > "$ssh_socket_file" <<EOL
+# [Socket]
+# ListenStream=
+# ListenStream=$NEW_SSH_PORT
+# EOL
+#     else
+#         # If the file exists, check for the ListenStream line with a valid port number
+#         if grep -E "^ListenStream=[1-9][0-9]{0,4}" "$ssh_socket_file"; then
+#             sed -i -E "s/^ListenStream=[1-9][0-9]{0,4}/ListenStream=$NEW_SSH_PORT/" "$ssh_socket_file"
+#         else
+#             # If not found, append the desired line
+#             echo -e "ListenStream=\nListenStream=$NEW_SSH_PORT" >> "$ssh_socket_file"
+#         fi
+#     fi
+
+    # TODO: if firewall is turned on, open the new port
+fi
 
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
@@ -309,7 +335,8 @@ if [ "$REBOOT_AFTER_INSTALLATION" ]; then
 else
     # Ensure that we're not in WSL (Windows Subsystem for Linux)
     if grep -vqi Microsoft /proc/version; then
-        systemctl restart sshd.service
+        systemctl daemon-reload
+        systemctl restart ssh.service
     fi
 fi
 
