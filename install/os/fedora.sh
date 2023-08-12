@@ -302,6 +302,10 @@ fi
 # activate tmux autostart (start or attach tmux on login. client has to pass the environment variable TMUX_AUTOSTART=true)
 ssh_config_file="/etc/ssh/sshd_config"
 
+echo -e "\n# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_config_file
+echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
+
+
 if [ "$NEW_SSH_PORT" ]; then
     echo "Changing ssh port to: $NEW_SSH_PORT"
     port_line_number="$(awk '/^Port / {print FNR}' $ssh_config_file)"
@@ -317,25 +321,21 @@ if [ "$NEW_SSH_PORT" ]; then
         fi
     fi
 
-    # TODO: if firewall is turned on, open the new port
+    # If firewall is turned on, open the new port
     if [ $(firewall-cmd --state --quiet) ]; then
         firewall-cmd --add-service=sshd --permanent
     fi
-fi
 
-echo "" >> $ssh_config_file
-echo "# Allow user to pass the TMUX_AUTOSTART environment variable." >> $ssh_config_file
-echo "AcceptEnv TMUX_AUTOSTART" >> $ssh_config_file
+    # Ensure that we're not in WSL (Windows Subsystem for Linux)
+    if grep -vqi Microsoft /proc/version; then
+        systemctl restart sshd.service
+    fi
+fi
 
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
     nohup bash -c 'sleep 30 && reboot' &>/dev/null &
     sleep 2
-else
-    # Ensure that we're not in WSL (Windows Subsystem for Linux)
-    if grep -vqi Microsoft /proc/version; then
-        systemctl restart sshd.service
-    fi
 fi
 
 exit 0

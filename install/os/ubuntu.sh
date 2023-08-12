@@ -315,44 +315,34 @@ if [ "$NEW_SSH_PORT" ]; then
         echo -e "\nPort $NEW_SSH_PORT" >> $ssh_config_file
     fi
 
+    ssh_socket_file="/etc/systemd/system/ssh.socket.d/listen.conf"
 
-##############################################################
-#####  THIS IS FOR FUTURE UBUNTU VERSIONS.                   #
-#####  JUST REPLACE THE ABOVE CODE WITH THE CODE DOWN BELOW  #
-#####  ONCE UBUNTU SWITCHES TO SOCKET-BASED ACTIVATION       #
-##############################################################
-#
-#     ssh_socket_file="/etc/systemd/system/ssh.socket.d/listen.conf"
+    if [[ ! -e "$ssh_socket_file" ]]; then
+        mkdir -p "/etc/systemd/system/ssh.socket.d/"
+        cat > "$ssh_socket_file" <<EOL
+[Socket]
+ListenStream=
+ListenStream=$NEW_SSH_PORT
+EOL
+    else
+        if grep -E "^ListenStream=[1-9][0-9]{0,4}" "$ssh_socket_file"; then
+            sed -i -E "s/^ListenStream=[1-9][0-9]{0,4}/ListenStream=$NEW_SSH_PORT/" "$ssh_socket_file"
+        else
+            echo -e "ListenStream=\nListenStream=$NEW_SSH_PORT" >> "$ssh_socket_file"
+        fi
+    fi
 
-#     if [[ ! -e "$ssh_socket_file" ]]; then
-#         cat > "$ssh_socket_file" <<EOL
-# [Socket]
-# ListenStream=
-# ListenStream=$NEW_SSH_PORT
-# EOL
-#     else
-#         # If the file exists, check for the ListenStream line with a valid port number
-#         if grep -E "^ListenStream=[1-9][0-9]{0,4}" "$ssh_socket_file"; then
-#             sed -i -E "s/^ListenStream=[1-9][0-9]{0,4}/ListenStream=$NEW_SSH_PORT/" "$ssh_socket_file"
-#         else
-#             # If not found, append the desired line
-#             echo -e "ListenStream=\nListenStream=$NEW_SSH_PORT" >> "$ssh_socket_file"
-#         fi
-#     fi
-
-    # TODO: if firewall is turned on, open the new port
+    # Ensure that we're not in WSL (Windows Subsystem for Linux)
+    if grep -vqi Microsoft /proc/version; then
+        systemctl daemon-reload
+        systemctl restart ssh.service
+    fi
 fi
 
 if [ "$REBOOT_AFTER_INSTALLATION" ]; then
     echo "Reboot system in 30 seconds..."
     nohup bash -c 'sleep 30 && reboot' &>/dev/null &
     sleep 2
-else
-    # Ensure that we're not in WSL (Windows Subsystem for Linux)
-    if grep -vqi Microsoft /proc/version; then
-        systemctl daemon-reload
-        systemctl restart ssh.service
-    fi
 fi
 
 exit 0

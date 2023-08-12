@@ -453,7 +453,6 @@ setup_remote_host()
     ssh -o StrictHostKeyChecking=no -p $port $install_user@$hostname -t "${params[@]}"
 
     if [ "$change_ssh_port" == "true" ]; then
-        remove_verification_keys "$hostname" "$port"
         update_verification_keys "$hostname" "$new_ssh_port"
     fi
 
