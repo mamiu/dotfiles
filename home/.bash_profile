@@ -5,7 +5,9 @@ if [ -f ~/.bashrc ]; then
 fi
 
 # Use fish as login shell
-case "$-" in
-    *i*) exec fish -il ;;
-    *)  ;;
-esac
+# (Disable for now to explore the behaviour without this code.)
+# (If this code is still commented out in 2-3 month, delete it.)
+# case "$-" in
+#     *i*) exec fish -il ;;
+#     *)  ;;
+# esac

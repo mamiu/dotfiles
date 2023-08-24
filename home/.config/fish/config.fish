@@ -16,7 +16,7 @@ if not set -q USE_TMUX_BY_DEFAULT
     set USE_TMUX_BY_DEFAULT true
 end
 if not set -q ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS
-    set ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS true
+    set ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS false
 end
 if not set -q CTRL_R_ENABLE_COLORS
     set -g CTRL_R_ENABLE_COLORS true # this option makes the CTRL-R function slower (just try it)
@@ -74,20 +74,18 @@ set -g theme_color_scheme base16
 # ALIASES
 alias ls="ls -h --group-directories-first --color"
 alias la="ls -lah --group-directories-first --color"
-alias ssh="env TMUX_AUTOSTART=true ssh"
-alias mosh="env TMUX_AUTOSTART=true mosh"
 
 # TMUX FISH INTEGRATION
 # Replace currently running shell with tmux if
 #  - current shell is a login shell AND
 #  - current shell is interactive AND
-#  - either the "$TMUX_AUTOSTART" environment variable or the "$USE_TMUX_BY_DEFAULT" variable is set to true
+#  - the "$USE_TMUX_BY_DEFAULT" variable is set to true
 if type -q tmux
     and status is-login
     and status is-interactive
     # the following condition check is a workaround for this bug (and should be removed once it's solved): https://github.com/microsoft/vscode-remote-release/issues/4813#issuecomment-818780854
     and not ps -o command $fish_pid | tail -1 | awk '{print $2}' | string match "*c*" >/dev/null
-    and test "$TMUX_AUTOSTART" = "true" -o "$USE_TMUX_BY_DEFAULT" = "true"
+    and test "$USE_TMUX_BY_DEFAULT" = "true"
     # make sure that current shell is not inside tmux
     if not tmux has-session 2>/dev/null; or test -z "$TMUX"
         # not inside of tmux session therefore create new one

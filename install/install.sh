@@ -22,6 +22,37 @@ get_public_ssh_key()
     echo "$public_key"
 }
 
+is_host_up() {
+    local host=$1
+
+    # Step 1: Check using ping
+    ping -c 1 -W 2 $host &>/dev/null
+
+    if [ $? -eq 0 ]; then
+        return 0
+    fi
+
+    # Step 2: Check using netcat for a range of common ports
+    declare -a ports=("22" "22222" "80" "443" "21" "25" "110" "143" "587" "993" "995" "3306")
+
+    for port in "${ports[@]}"; do
+        nc -z -w2 $host $port &>/dev/null
+        if [ $? -eq 0 ]; then
+            return 0
+        fi
+    done
+
+    # Step 3: Check using nmap, but only if nmap is installed
+    if command -v nmap &>/dev/null; then
+        response=$(nmap -sn $host | grep "Host is up")
+        if [ -n "$response" ]; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
 configure_new_server()
 {
     echo
@@ -53,7 +84,7 @@ configure_new_server()
     # Servers domain or IP address
     if [ -z "$hostname" ]; then
         read -p "Hostname or IP address of the server: " hostname </dev/tty
-        while ! ping -c1 -W1 "$hostname" &>/dev/null
+        while ! is_host_up "$hostname" &>/dev/null
         do
             read -p "Host is not reachable. Please enter a valid hostname or IP address: " hostname </dev/tty
         done
