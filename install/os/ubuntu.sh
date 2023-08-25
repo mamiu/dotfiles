@@ -181,8 +181,13 @@ fi
 
 install_basic_packages() {
     set -x
-    apt-get update -y
-    apt-get upgrade -y
+
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef \
+        -y --allow-downgrades --allow-remove-essential --allow-change-held-packages upgrade
+    apt-get -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef \
+        -y --allow-downgrades --allow-remove-essential --allow-change-held-packages dist-upgrade
 
     # Just to make sure that the very basics are installed
     # net-tools        => netstat (network statistics)

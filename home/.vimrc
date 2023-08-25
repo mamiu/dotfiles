@@ -385,6 +385,10 @@ let g:airline_symbols.linenr = ''
 
 " Better Search (f,F,t,T) ------------------------------
 
+" search case-insensitive when search term is all lowercase
+:set ignorecase
+:set smartcase
+
 let [pvft,pvftc]=[1,32]
 fun! Multift(x,c,i)
     let [g:pvftc,g:pvft]=[a:c,a:i]
