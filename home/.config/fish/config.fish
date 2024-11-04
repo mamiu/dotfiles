@@ -30,6 +30,7 @@ source $HOME/.homesick/repos/homeshick/completions/homeshick.fish
 if test -f $HOME/bin/google-cloud-sdk/path.fish.inc
     source $HOME/bin/google-cloud-sdk/path.fish.inc
 end
+source "$HOME/.cargo/env.fish"
 
 # CHECK IF BAT IS INSTALLED (CAT ALTERNATIVE)
 if type -q bat
@@ -45,7 +46,11 @@ if type -q $__BAT_CMD
     set -x MANROFFOPT "-c"
     set -x SYSTEMD_PAGER "$__BAT_CMD -l log -p"
 end
-
+# SET PNPM HOME
+set -gx PNPM_HOME "/Users/manu/.local/share/pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+  set -gx PATH "$PNPM_HOME" $PATH
+end
 # CHECK IF FD IS INSTALLED (FIND ALTERNATIVE)
 if type -q fd
     set -g __FD_CMD (which fd)
@@ -100,3 +105,11 @@ if type -q tmux
         tmux refresh-client
     end
 end
+
+
+# pnpm
+set -gx PNPM_HOME "/Users/manu/.local/share/pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+  set -gx PATH "$PNPM_HOME" $PATH
+end
+# pnpm end

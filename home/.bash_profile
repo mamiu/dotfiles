@@ -11,3 +11,7 @@ fi
 #     *i*) exec fish -il ;;
 #     *)  ;;
 # esac
+
+
+. "$HOME/.cargo/env"
+. "/Users/manu/.deno/env"
