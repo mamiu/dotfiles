@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# Set the screenshots directory (customizable)
+SCREENSHOT_DIR="${SCREENSHOT_DIR:-$HOME/Screenshots}"
+
+# Define the watcher port for progress monitoring
+WATCHER_PORT=9998
+
+# Define a function to draw the progress bar
+draw_progress_bar() {
+  local percent=$1
+  local bar_width=50
+  local filled=$((percent * bar_width / 100))
+  local empty=$((bar_width - filled))
+  local bar=$(printf "%${filled}s" "" | tr ' ' '#')$(printf "%${empty}s" "" | tr ' ' '-')
+
+  # Display progress bar with percentage
+  printf "\rProgress: [%-50s] %d%%" "$bar" "$percent"
+}
+
+# Get the latest .mov file in the screenshots directory using `find`
+latest_mov=$(ls -t "$SCREENSHOT_DIR"/*.mov 2>/dev/null | head -n 1)
+
+# Check if there's a .mov file in the directory
+if [[ -z "$latest_mov" ]]; then
+  echo "No .mov files found in $SCREENSHOT_DIR."
+  exit 1
+fi
+
+# Ask whether to keep the original file after successful compression
+read -rp "Keep the original file after compression? (Y/n): " keep_original
+keep_original=${keep_original:-Y} # Default to "Y" if no input
+if [[ "$keep_original" =~ ^[Nn]$ ]]; then
+  keep_original="no"
+else
+  keep_original="yes"
+fi
+
+# Determine if "--with-audio" flag is provided
+if [[ "$1" == "--with-audio" ]]; then
+  echo "Compressing video with audio..."
+  audio_args=(-filter:a atempo=1.25) # Array for audio filter args
+  audio_suffix="(compressed - with audio)"
+else
+  echo "Compressing video without audio..."
+  audio_args=(-an) # Array for no-audio option
+  audio_suffix="(compressed - no audio)"
+fi
+
+# Set the output file name by appending the audio suffix before the file extension
+output_file="${latest_mov%.mov} ${audio_suffix}.mp4"
+
+# Check if the output file already exists
+if [[ -e "$output_file" ]]; then
+  echo "Compressed file already exists: $output_file"
+else
+  # Get the total duration of the video in seconds
+  DURATION=$(ffprobe -v error -select_streams v:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "$latest_mov")
+  DURATION_MICROSECONDS=$(echo "$DURATION * 1000000" | bc)
+
+  # Define a function to handle CTRL-C and delete unfinished output file
+  cleanup() {
+    echo -e "\nCompression canceled. Cleaning up..."
+    if [[ -e "$output_file" ]]; then
+      rm "$output_file"
+      echo "Deleted unfinished output file."
+    fi
+    kill $listener_pid 2>/dev/null # Kill the background nc process, if running
+    exit 1
+  }
+  trap cleanup SIGINT
+
+  # Start a listener for progress updates without a persistent loop
+  nc -l -p $WATCHER_PORT | while read -r line; do
+    if [[ "$line" =~ out_time_ms=([0-9]+) ]]; then
+      # Extract the out_time value in milliseconds
+      out_time_ms=${BASH_REMATCH[1]}
+
+      # Calculate percentage completion
+      percent=$(awk -v curr="$out_time_ms" -v total="$DURATION_MICROSECONDS" 'BEGIN { printf "%.0f", (curr / total) * 100 }')
+
+      # Call the progress bar function
+      draw_progress_bar "$percent"
+    fi
+  done &
+  listener_pid=$!
+  sleep 1 # Ensure nc listener is fully initialized
+
+  # Run ffmpeg command to scale, speed up, and compress the video with conditional audio options, silencing progress
+  ffmpeg -y -i "$latest_mov" -vf "scale='if(gt(iw,1920),1920,iw)':'if(gt(ih,1080),1080,ih)':force_original_aspect_ratio=decrease,setpts=0.8*PTS" "${audio_args[@]}" -crf 23 -preset medium -progress "tcp://localhost:$WATCHER_PORT" -loglevel quiet "$output_file"
+
+  # Remove trap for SIGINT after successful compression
+  trap - SIGINT
+
+  # Kill the listener process after ffmpeg completes
+  kill $listener_pid 2>/dev/null
+
+  # Ensure the progress bar completes at 100%
+  draw_progress_bar 100
+  echo -e "\nCompression complete."
+
+  # Check if the output file was created successfully
+  if [[ ! -e "$output_file" ]]; then
+    echo "Failed to create compressed file."
+    exit 1
+  fi
+fi
+
+# Optionally delete the original file after successful compression
+if [[ "$keep_original" == "no" ]]; then
+  trash "$latest_mov"
+  echo "Original file moved to trash."
+else
+  echo "Original file kept."
+fi
+
+# Copy the output file path to the clipboard using AppleScript
+echo "Copying file path to clipboard..."
+osascript -e "set the clipboard to POSIX file \"$output_file\""
+echo "File path copied to clipboard: $output_file"
+
+exit 0

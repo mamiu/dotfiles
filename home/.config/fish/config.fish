@@ -10,6 +10,7 @@ set -x XDG_DATA_HOME $HOME/.local/share
 # If you want to add a custom directory to your PATH environment
 # variable just duplicate the following line and adjust it
 set -x PATH $XDG_CONFIG_HOME/fish/scripts $PATH
+set -x PATH $HOME/bin $PATH
 
 # FISH SHELL CONFIGS
 if not set -q USE_TMUX_BY_DEFAULT
@@ -105,11 +106,3 @@ if type -q tmux
         tmux refresh-client
     end
 end
-
-
-# pnpm
-set -gx PNPM_HOME "/Users/manu/.local/share/pnpm"
-if not string match -q -- $PNPM_HOME $PATH
-  set -gx PATH "$PNPM_HOME" $PATH
-end
-# pnpm end
