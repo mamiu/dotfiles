@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+# 0) Parse optional look-back interval (in minutes), default to 10
+LOOKBACK_MIN=${1:-10}
+
+# 1) Directory to scan (and where to drop the MP3)
+DOWNLOADS_DIR="$HOME/Downloads"
+
+# 2) Detect which stat flags to use for birth-time vs mod-time
+if stat --version >/dev/null 2>&1; then
+  # GNU stat (Linux)
+  STAT_CMD=stat
+  STAT_B_ARG=(-c %W)  # birth time, seconds since epoch (or -1 if unsupported)
+  STAT_M_ARG=(-c %Y)  # modification time
+else
+  # BSD stat (macOS)
+  STAT_CMD=stat
+  STAT_B_ARG=(-f %B)  # birth time
+  STAT_M_ARG=(-f %m)  # modification time
+fi
+
+# 3) Build list of files, sorted by creation-time (oldest → newest)
+mapfile -t files < <(
+  find "$DOWNLOADS_DIR" -type f \( -iname '*.opus' -o -iname '*.ogg' \) \
+       -mmin "-$LOOKBACK_MIN" -print0 | \
+  while IFS= read -r -d '' f; do
+    # try birth-time; fallback to mod-time
+    if ! ct=$("$STAT_CMD" "${STAT_B_ARG[@]}" "$f" 2>/dev/null) || [[ $ct -le 0 ]]; then
+      ct=$("$STAT_CMD" "${STAT_M_ARG[@]}" "$f")
+    fi
+    printf '%s\t%s\n' "$ct" "$f"
+  done | sort -n | cut -f2-
+)
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo "No .opus or .ogg files modified in the last $LOOKBACK_MIN minutes under $DOWNLOADS_DIR."
+  exit 0
+fi
+
+# 4) Decide prefix based on file types
+declare -A seen
+for f in "${files[@]}"; do
+  ext="${f##*.}"
+  seen["${ext,,}"]=1
+done
+
+if   [[ ${#seen[@]} -eq 1 && ${seen[opus]+_} ]]; then prefix="WhatsApp"
+elif [[ ${#seen[@]} -eq 1 && ${seen[ogg]+_}  ]]; then prefix="Telegram"
+else prefix="Combined"
+fi
+
+# 5) Timestamp for output filename (hyphens, no colons)
+timestamp=$(date '+%Y-%m-%d-%H-%M-%S')
+output="$DOWNLOADS_DIR/${prefix}-${timestamp}.mp3"
+
+# 6) Run ffmpeg
+if [[ ${#files[@]} -eq 1 ]]; then
+  # Single file → straight convert
+  ffmpeg -i "${files[0]}" -c:a libmp3lame "$output"
+else
+  # Multiple → concatenate via filter_complex
+  inputs=()
+  labels=""
+  for idx in "${!files[@]}"; do
+    inputs+=( -i "${files[$idx]}" )
+    labels+="[$idx:a]"
+  done
+  filter_complex="${labels}concat=n=${#files[@]}:v=0:a=1[aout]"
+
+  ffmpeg "${inputs[@]}" \
+    -filter_complex "$filter_complex" \
+    -map "[aout]" \
+    -c:a libmp3lame \
+    "$output"
+fi
+
+echo "✅ Created: $output"
+
+# 7) Copy to clipboard (macOS only)
+# We check if 'osascript' exists first to prevent errors if run on Linux.
+if command -v osascript >/dev/null 2>&1; then
+  echo "Copying file to clipboard..."
+  osascript -e "set the clipboard to POSIX file \"$output\""
+  echo "📋 File copied to clipboard."
+fi
