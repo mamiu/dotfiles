@@ -5,6 +5,8 @@ function abbreviations
       abbr --add --global ee 'echo -e'
       abbr --add --global w 'watch -n 1'
       abbr --add --global n 'netstat -tlpn'
+      abbr --add --global t 'tmux'
+      abbr --add --global ta 'tmux a'
       abbr --add --global gc 'git clone'
       abbr --add --global ga 'git add -A'
       abbr --add --global gco 'git commit -m'

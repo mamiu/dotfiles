@@ -7,14 +7,15 @@ set -x GPG_TTY (tty)
 set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_DATA_HOME $HOME/.local/share
-# If you want to add a custom directory to your PATH environment
-# variable just duplicate the following line and adjust it
-set -x PATH $XDG_CONFIG_HOME/fish/scripts $PATH
-set -x PATH $HOME/bin $PATH
+
+set -x PATH $HOME/bin $HOME/.local/bin $XDG_CONFIG_HOME/fish/scripts $PATH
+
+# Disable the default virtualenv prompt, since it doesn't play nice with fish
+set -x VIRTUAL_ENV_DISABLE_PROMPT 1
 
 # FISH SHELL CONFIGS
 if not set -q USE_TMUX_BY_DEFAULT
-    set USE_TMUX_BY_DEFAULT true
+    set USE_TMUX_BY_DEFAULT false
 end
 if not set -q ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS
     set ONLY_ATTACH_TO_TMUX_IN_SSH_SESSIONS false
@@ -32,6 +33,7 @@ if test -f $HOME/bin/google-cloud-sdk/path.fish.inc
     source $HOME/bin/google-cloud-sdk/path.fish.inc
 end
 source "$HOME/.cargo/env.fish"
+pyenv init - fish | source
 
 # CHECK IF BAT IS INSTALLED (CAT ALTERNATIVE)
 if type -q bat
@@ -63,7 +65,7 @@ end
 # BOBTHEFISH THEME CONFIGS
 function fish_greeting -d "Override fish greeting function to disable the bobthefish greeting"; end
 set -g theme_display_git yes
-set -g theme_display_git_master_branch yes
+set -g theme_display_git_master_branch no
 set -g theme_display_user ssh
 set -g theme_display_hostname ssh
 set -g theme_display_date yes
