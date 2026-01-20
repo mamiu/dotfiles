@@ -87,7 +87,7 @@ else
   sleep 1 # Ensure nc listener is fully initialized
 
   # Run ffmpeg command to scale, speed up, and compress the video with conditional audio options, silencing progress
-  ffmpeg -y -i "$latest_mov" -vf "scale='if(gt(iw,1920),1920,iw)':'if(gt(ih,1080),1080,ih)':force_original_aspect_ratio=decrease,setpts=0.8*PTS" "${audio_args[@]}" -crf 23 -preset medium -progress "tcp://localhost:$WATCHER_PORT" -loglevel quiet "$output_file"
+  ffmpeg -y -i "$latest_mov" -vf "scale='if(gt(iw,1920),1920,iw)':'if(gt(ih,1080),1080,ih)':force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2,setpts=0.8*PTS" "${audio_args[@]}" -crf 23 -preset medium -progress "tcp://localhost:$WATCHER_PORT" -loglevel quiet "$output_file"
 
   # Remove trap for SIGINT after successful compression
   trap - SIGINT
